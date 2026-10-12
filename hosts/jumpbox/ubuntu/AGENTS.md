@@ -441,8 +441,10 @@ reviewer is asked on the head, and security and correctness findings block.
   or `DISAGREE:`. A gate rejected "RED-VERIFIED (source-level):". A doc or wording fix is
   `NOT-A-DEFECT:`.
 - **When a bot cannot review** (the Codex GitHub reviewer has its own usage limit, separate
-  from the `codex` CLI), review the unreviewed delta with `codex exec -s read-only`. Then
-  record on the PR exactly what was reviewed and how, before merging past the gate.
+  from the `codex` CLI), review the unreviewed delta with the CLI: `codex exec -s read-only`
+  with a prompt naming the range (`git diff <last reviewed sha>..<head sha>`) and asking for a
+  code review of exactly that diff. Then record on the PR the range, the command and the
+  findings, before merging past the gate.
 - **Bot quirks:**
   - CodeRabbit allows about one review an hour per account, reviews incrementally, and
     re-edits its summary and old findings after later pushes. An edited finding needs a new
@@ -592,10 +594,12 @@ contains the parent's commits. Merging main into the child then conflicts on eve
 child changed on top of the parent. Instead, replay only the child's own change:
 
 ```bash
+head=$(git rev-parse child)        # save the child's tip: the next line moves the branch
 git checkout -B child origin/main
-git diff --binary <child-base> <child-head> | git apply -3 --index
-# resolve the real overlaps, regenerate generated files, then check that the change set is
-# unchanged: the sorted +/- lines of the old and new diffs against their bases must match
+git diff --binary <child-base> "$head" | git apply -3 --index
+# resolve the real overlaps and regenerate generated files, then compare the change set
+# file by file: diff <(git diff <child-base> "$head") <(git diff --cached origin/main)
+# and read every difference that is not line numbers or context
 ```
 
 A CI job that commits generated files back to main (rendered charts, lockfiles) conflicts

@@ -91,8 +91,10 @@ jumpbox reviews and merges them, and security and correctness findings block.
   or `DISAGREE:`. A gate rejected "RED-VERIFIED (source-level):". A doc or wording fix is
   `NOT-A-DEFECT:`.
 - **When a bot cannot review** (the Codex GitHub reviewer has its own usage limit, separate
-  from the `codex` CLI), review the unreviewed delta with `codex exec -s read-only`. Then
-  record on the PR exactly what was reviewed and how, before merging past the gate.
+  from the `codex` CLI), review the unreviewed delta with the CLI: `codex exec -s read-only`
+  with a prompt naming the range (`git diff <last reviewed sha>..<head sha>`) and asking for a
+  code review of exactly that diff. Then record on the PR the range, the command and the
+  findings, before merging past the gate.
 - **Bot quirks:**
   - CodeRabbit allows about one review an hour per account, reviews incrementally, and
     re-edits its summary and old findings after later pushes. An edited finding needs a new
