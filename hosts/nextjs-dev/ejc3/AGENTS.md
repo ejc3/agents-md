@@ -63,6 +63,46 @@ Not reachable from this box (administration only, or the metal boxes): productio
 The full, current list, with what each is for, is in the public `ejc3/aws` repo:
 `curl -fsSL https://raw.githubusercontent.com/ejc3/aws/main/AGENTS.md | sed -n '/^### AI services on the dev boxes/,/^### Sites also deploying/p'`
 
+## Reviewer Bots and the Merge Gate: a Time Budget, Not a Loop
+
+The owner's rule (2026-10-12): "We can't take hours on this stuff unless it's super critical,"
+and the merge gate exists "to make sure models are honest and don't skip steps", not to
+block attackers.
+
+**Scope:** repositories whose merge gate is a `pr-review-gate` skill. In `ejc3/aws` and
+`ejc3/agents-md` this section does not apply: there this box only opens pull requests, the
+jumpbox reviews and merges them, and security and correctness findings block.
+
+- **Codex is the one required head reviewer.** CodeRabbit and Greptile findings are
+  answered like any other, but do not wait on their reviews of each head.
+- **Fix before merge only what is critical.** That means a committed result, number or doc
+  that is actually wrong, or a defect in the merge path itself. Answer the rest in the thread
+  (`DISAGREE: not blocking; tracked in #N`) and collect it in one tracking issue. Treat a
+  finding that only matters against a hostile actor as not blocking. Treat one that would let
+  a model skip a step unnoticed as blocking.
+- **Hand-modelled checkers never converge under bot review.** An SVG legibility audit, a
+  number-preservation diff and a link checker each drew 3–5 new edge-case findings per Codex
+  round for about ten rounds. Before the first review, state the contract (a lint over what
+  our own tools emit; anything else refused as unsupported) and the stopping rule.
+- **Every push resets the head review,** and every merge to main can make the other open PRs
+  conflict. Batch fixes into one push, merge each PR as soon as it clears, and merge PRs that
+  touch the same files back to back.
+- **Disposition replies must open with the exact prefix**: `RED-VERIFIED:`, `NOT-A-DEFECT:`
+  or `DISAGREE:`. A gate rejected "RED-VERIFIED (source-level):". A doc or wording fix is
+  `NOT-A-DEFECT:`.
+- **When a bot cannot review** (the Codex GitHub reviewer has its own usage limit, separate
+  from the `codex` CLI), review the unreviewed delta with the CLI: `codex exec -s read-only`
+  with a prompt naming the range (`git diff <last reviewed sha>..<head sha>`) and asking for a
+  code review of exactly that diff. Then record on the PR the range, the command and the
+  findings, before merging past the gate.
+- **Bot quirks:**
+  - CodeRabbit allows about one review an hour per account, reviews incrementally, and
+    re-edits its summary and old findings after later pushes. An edited finding needs a new
+    answer.
+  - Greptile runs only on an `@greptileai review` comment. It reports through a "Greptile
+    Review" check and a summary below `<!-- greptile_comment -->` in the PR body, not through
+    review comments, so look for those when checking whether it ran.
+
 ## ejc3/aws and ejc3/agents-md: this box proposes, the jumpbox merges
 
 The owner's rule (2026-10-12), for two repositories only: `ejc3/aws` and `ejc3/agents-md`. Agents on this box may open
