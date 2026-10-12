@@ -22,7 +22,7 @@ The owner's user-level agent instructions, one file per machine and account. Cla
 
 ## What may be written here
 
-These files are read by agents that open public pull requests, and this repository could be shared. Keep out of it:
+This repository is public, and agents that open public pull requests read these files. Keep out of it:
 email addresses, secrets and tokens, public IP addresses, unreleased model names and code names, and
 anything else copied from a live session. Alias names (`fcvm-arm`, `nextjs`), account names and the public model names
 are fine.
