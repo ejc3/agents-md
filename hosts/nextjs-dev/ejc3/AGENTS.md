@@ -36,9 +36,11 @@ A draft deployed behind a Cloudflare Access gate is ALWAYS okay to push, without
 `<site>-stage` Workers, prototypes, previews, and test-flight builds (TestFlight to internal testers
 included). Getting a working build in front of the owner is part of the task, not a follow-up:
 never stop at "merged" or "ready" with the product undeployed. If a credential or permission is
-missing, get it (open the PR to `ejc3/aws` for the access) in the same push, rather than
-reporting the gap and stopping. Only a public, ungated production launch needs the owner's
-go-ahead.
+missing, propose it in the same push (a pull request to `ejc3/aws`, which the jumpbox reviews and
+applies) rather than reporting the gap and stopping. What "Credentials on this box" below lists as
+not reachable from this box stays off it: deploys that need those run from the jumpbox or another
+box, so propose the change there or ask the owner. Only a public, ungated production launch needs
+the owner's go-ahead.
 
 ## Credentials on this box
 
