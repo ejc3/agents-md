@@ -1,0 +1,22 @@
+name: Content guard
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  content-guard:
+    name: content guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+      - name: No addresses, secrets, public IPs or unreleased model names
+        run: bash scripts/content-guard.sh
+      - name: The guard catches what it says it does
+        run: bash scripts/test-content-guard.sh
