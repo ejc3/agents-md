@@ -30,6 +30,16 @@ How to use them:
 - If a subagent gets it wrong once, do that piece in the main session instead; do not retry the same model.
 - Never hand a cheaper model an action that cannot be undone: a deploy, a delete, a push to main, a credential.
 
+## Drafts behind Cloudflare Access always ship (owner, 2026-10-12)
+
+A draft deployed behind a Cloudflare Access gate is ALWAYS okay to push, without asking: staging
+`<site>-stage` Workers, prototypes, previews, and test-flight builds (TestFlight to internal testers
+included). Getting a working build in front of the owner is part of the task, not a follow-up:
+never stop at "merged" or "ready" with the product undeployed. If a credential or permission is
+missing, get it (open the PR to `ejc3/aws` for the access) in the same push, rather than
+reporting the gap and stopping. Only a public, ungated production launch needs the owner's
+go-ahead.
+
 ## Credentials on this box
 
 This box's instance role gives agents these, with no key on disk. Load a secret into the environment, never onto a
