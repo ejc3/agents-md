@@ -419,6 +419,10 @@ The owner's rule (2026-10-12): "We can't take hours on this stuff unless it's su
 and the merge gate exists "to make sure models are honest and don't skip steps", not to
 block attackers.
 
+**Scope:** repositories whose merge gate is a `pr-review-gate` skill. In `ejc3/aws` and
+`ejc3/agents-md` the PR watch (`/pr-watch`) and ejc3/aws's AGENTS.md govern instead: every
+reviewer is asked on the head, and security and correctness findings block.
+
 - **Codex is the one required head reviewer.** CodeRabbit and Greptile findings are
   answered like any other, but do not wait on their reviews of each head.
 - **Fix before merge only what is critical.** That means a committed result, number or doc
