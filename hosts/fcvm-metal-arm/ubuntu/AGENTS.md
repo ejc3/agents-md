@@ -324,6 +324,40 @@ needs the gate's existing disposition vocabulary. Reply with `DISAGREE: this PR 
 cause or worsen the reported behavior; tracked in #N` and resolve it only when the diff and
 tests substantiate that statement. If they do not, the finding blocks this PR.
 
+### Reviewer bots and the merge gate: a time budget, not a loop
+
+The owner's rule (2026-10-12): "We can't take hours on this stuff unless it's super critical,"
+and the merge gate exists "to make sure models are honest and don't skip steps", not to
+block attackers.
+
+- **Codex is the one required head reviewer.** CodeRabbit and Greptile findings are
+  answered like any other, but do not wait on their reviews of each head.
+- **Fix before merge only what is critical.** That means a committed result, number or doc
+  that is actually wrong, or a defect in the merge path itself. Answer the rest in the thread
+  (`DISAGREE: not blocking; tracked in #N`) and collect it in one tracking issue. Treat a
+  finding that only matters against a hostile actor as not blocking. Treat one that would let
+  a model skip a step unnoticed as blocking.
+- **Hand-modelled checkers never converge under bot review.** An SVG legibility audit, a
+  number-preservation diff and a link checker each drew 3–5 new edge-case findings per Codex
+  round for about ten rounds. Before the first review, state the contract (a lint over what
+  our own tools emit; anything else refused as unsupported) and the stopping rule.
+- **Every push resets the head review,** and every merge to main can make the other open PRs
+  conflict. Batch fixes into one push, merge each PR as soon as it clears, and merge PRs that
+  touch the same files back to back.
+- **Disposition replies must open with the exact prefix**: `RED-VERIFIED:`, `NOT-A-DEFECT:`
+  or `DISAGREE:`. A gate rejected "RED-VERIFIED (source-level):". A doc or wording fix is
+  `NOT-A-DEFECT:`.
+- **When a bot cannot review** (the Codex GitHub reviewer has its own usage limit, separate
+  from the `codex` CLI), review the unreviewed delta with `codex exec -s read-only`. Then
+  record on the PR exactly what was reviewed and how, before merging past the gate.
+- **Bot quirks:**
+  - CodeRabbit allows about one review an hour per account, reviews incrementally, and
+    re-edits its summary and old findings after later pushes. An edited finding needs a new
+    answer.
+  - Greptile runs only on an `@greptileai review` comment. It reports through a "Greptile
+    Review" check and a summary below `<!-- greptile_comment -->` in the PR body, not through
+    review comments, so look for those when checking whether it ran.
+
 ## Pull Requests
 
 ### MANDATORY: Examine ALL Changes Before Creating/Updating PRs
@@ -746,6 +780,23 @@ git checkout phase6 && git rebase phase5 && git push -f
 # You must wait for ALL of them to go green again
 ```
 
+### After a Squash Merge: Re-apply the Child's Net Diff
+
+When the parent PR is squash-merged, git can no longer see that the child branch already
+contains the parent's commits. Merging main into the child then conflicts on every line the
+child changed on top of the parent. Instead, replay only the child's own change:
+
+```bash
+git checkout -B child origin/main
+git diff --binary <child-base> <child-head> | git apply -3 --index
+# resolve the real overlaps, regenerate generated files, then check that the change set is
+# unchanged: the sorted +/- lines of the old and new diffs against their bases must match
+```
+
+A CI job that commits generated files back to main (rendered charts, lockfiles) conflicts
+with every open PR touching them. Wait for that commit to land, then refresh the next PR
+once, keeping the PR's own generated output and re-rendering.
+
 ### Stack of PRs Summary
 
 **The complete workflow:**
@@ -886,6 +937,22 @@ or a decision on a dedicated parallel box (`pbox`), and throw away anything meas
 - A box bills by the hour: `pbox down N` as soon as the results are copied back (the work
   volume is kept). Do not leave one idle between jobs.
 - Records keep the instance type, never the box's host name, IP or boot id.
+
+## Skills and Tool Gotchas on This Box
+
+- **Skills in `~/claude-skills`** (symlinked into `~/.claude/skills`):
+  - `docs-design-pass` raises a repository's charts, figures and prose to a technical-paper
+    standard. It ships an SVG legibility audit, a number-preservation check and a link
+    checker.
+  - Each repository's `pr-review-gate` skill is the merge gate: every finding answered with a
+    disposition, and the head reviewed.
+  - Use a skill when its description matches the task.
+- **The Bash tool runs zsh.** zsh does not word-split unquoted variables, so
+  `for p in $list` and `set -- $p` see one word. Write the command substitution inline,
+  or use `${=var}`.
+- **A background agent can go silent mid-task** and not answer messages. Verify its
+  committed work yourself (run the tests, and run the red check against the old code), then
+  stop it instead of waiting.
 
 ## Code someone else owns is not a reason to stop
 
