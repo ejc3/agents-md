@@ -626,10 +626,11 @@ conversation there, or an interactive marker touched in that window. A folder no
 off at the next reboot.
 
 - When you clone a repository or create a git worktree the user wants to use interactively, mark it:
-  `touch "$(git -C <folder> rev-parse --git-dir)/claude-interactive"`. The marker lives in the git
-  directory, so it is never tracked and never shows in `git status`. The new-repo watcher
-  (agent-session-sync) starts a Remote Control session there within seconds, ready for the user to
-  prompt from the phone.
+  `touch "$(git -C <folder> rev-parse --absolute-git-dir)/claude-interactive"` (absolute: a relative
+  `.git` would resolve against your own directory). The marker lives in the git directory, so it is
+  never tracked and never shows in `git status`. The new-repo watcher (agent-session-sync) starts a
+  Remote Control session there within seconds, ready for the user to prompt from the phone. It looks
+  at clones directly under `~` or `~/src` and at worktrees of those, wherever the worktree lives.
 - Do not mark scratch clones, review trees, or anything only you use. Subagent worktrees under
   `.claude/worktrees/` are never opened, marked or not.
 - To see what this box will open: `agent-active-dirs --explain`.
