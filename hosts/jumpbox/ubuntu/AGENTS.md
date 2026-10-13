@@ -453,6 +453,22 @@ reviewer is asked on the head, and security and correctness findings block.
     Review" check and a summary below `<!-- greptile_comment -->` in the PR body, not through
     review comments, so look for those when checking whether it ran.
 
+## Interactive sessions: mark a checkout or worktree for interactive use
+
+The owner's rule (2026-10-13): at boot, a box opens a Claude session (t-claude, Remote Control) for
+every folder with session activity in the last 30 days: a prompt a person sent in a Claude
+conversation there, or an interactive marker touched in that window. A folder nobody prompts drops
+off at the next reboot.
+
+- When you clone a repository or create a git worktree the user wants to use interactively, mark it:
+  `touch "$(git -C <folder> rev-parse --git-dir)/claude-interactive"`. The marker lives in the git
+  directory, so it is never tracked and never shows in `git status`. The new-repo watcher
+  (agent-session-sync) starts a Remote Control session there within seconds, ready for the user to
+  prompt from the phone.
+- Do not mark scratch clones, review trees, or anything only you use. Subagent worktrees under
+  `.claude/worktrees/` are never opened, marked or not.
+- To see what this box will open: `agent-active-dirs --explain`.
+
 ## Stack of PRs Workflow
 
 ### Critical Rule: Work in Phases, Test Locally, Wait for Green
