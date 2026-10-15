@@ -979,6 +979,30 @@ or a decision on a dedicated parallel box (`pbox`), and throw away anything meas
   committed work yourself (run the tests, and run the red check against the old code), then
   stop it instead of waiting.
 
+## Host: fcvm-metal-arm — signed-in browsers and the owner's Mac
+
+When a task needs the owner's login (a billing page, a Figma session), these are the ways in, in this order.
+
+- **The agent browser.** The Chrome with a debugging port on `127.0.0.1:9224` (remote-claw's `claude-browser`
+  profile) is the one agents drive and copy sessions from. Check whether it is signed in to a site by cookie
+  *names* only (GitHub `user_session`, Figma `__Host-figma.authn`), never by printing a value. When it is signed
+  out, ask the owner to sign in there (next point); do not look for another way round.
+- **Putting it in front of the owner.** The owner's Mac keeps a reverse tunnel to this box: `ssh macbook` (the
+  `Host` entries `mac-reverse-tunnels.tf` writes to `~/.ssh/config.d-mac-tunnels`) reaches the Mac while it is up.
+  Forward the agent browser to the Mac's own `localhost` with `ssh -N -R 127.0.0.1:9224:127.0.0.1:9224 macbook &`
+  (record `$!`, stop that PID when done), open the login page as a tab in the agent browser
+  (`curl -X PUT "http://127.0.0.1:9224/json/new?<url>"`), and send the owner
+  `http://localhost:9224/devtools/inspector.html?ws=localhost:9224/devtools/page/<tab id>`: a live view of that tab
+  in their own Chrome, where they can type and click. The owner runs nothing.
+- **Computer control on the Mac.** AppleScript over that tunnel drives the owner's Google Chrome:
+  `ssh macbook 'osascript -e "tell application \"Google Chrome\" to ..."'`, including `execute ... javascript` to
+  read a page. Open your own tab, read what the task needs, close that tab; never act in tabs you did not open, and
+  change nothing about accounts, payments or settings unless the owner asked for exactly that. Safari has not been
+  given this permission: a `do JavaScript` there waits on a prompt on the owner's screen.
+- **browser-manager's browsers** (`browserctl list`) are the owner's. Their Chrome is driven only over a private
+  pipe, by design; there is no debugging port for agents, and their profiles' cookies are never read off disk.
+  `browserctl url <name>` gives the owner a link to one.
+
 ## Code someone else owns is not a reason to stop
 
 The owner's rule (2026-10-12): "we never abide by 'someone else owns it'. Draft PRs and
