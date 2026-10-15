@@ -979,6 +979,15 @@ or a decision on a dedicated parallel box (`pbox`), and throw away anything meas
   committed work yourself (run the tests, and run the red check against the old code), then
   stop it instead of waiting.
 
+## Host: fcvm-metal-arm — machine-local instructions
+
+What only this box needs to know and the public repository must not hold (how to reach the owner's signed-in
+browsers and Mac, local host aliases and services) is kept in a file on the box, outside git, and read from here:
+
+@~/.claude/local.md
+
+Change that file on the box itself. If it is missing, nothing breaks; ask the owner.
+
 ## Code someone else owns is not a reason to stop
 
 The owner's rule (2026-10-12): "we never abide by 'someone else owns it'. Draft PRs and
