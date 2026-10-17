@@ -49,12 +49,17 @@ are built on Astryx, Meta's open-source design system (`@astryxdesign/core`,
 github.com/facebook/astryx): React 19 components with pre-built CSS, themed through CSS custom
 properties (`defineTheme`), with a CLI made for agents.
 
-- **Pin the exact version** (`"0.7.1"`, not `"^0.7.1"`): it is in beta. Upgrade in a pull request
-  of its own, with its codemods (`astryx upgrade --apply`).
+- **Pin the exact version** (`"0.7.1"`, not `"^0.7.1"`) of `@astryxdesign/core` and of its CLI,
+  `@astryxdesign/cli` (a dev dependency): it is in beta. Upgrade both in a pull request of their own,
+  with its codemods (`npx astryx upgrade --apply`).
+- **The CLI is `@astryxdesign/cli`, never the unscoped `astryx` package.** That name on npm belongs
+  to someone else; `npx astryx` in a project without the CLI installed downloads and runs it. Add the
+  CLI first (`npm install --save-dev --save-exact @astryxdesign/cli@0.7.1`), so `npx astryx` runs the
+  project's own copy, or call it by its full name (`npx @astryxdesign/cli@0.7.1 ...`).
 - **Use the CLI before writing a component.** Run `npx astryx init` once per project, so its
   component index is in that project's `AGENTS.md` or `CLAUDE.md` (whichever the project keeps;
   where one is a symlink to the other, either); look a component up with
-  `astryx component <Name>`; start a page from `astryx template` rather than composing from scratch.
+  `npx astryx component <Name>`; start a page from `npx astryx template` rather than composing from scratch.
 - **One product theme per app.** Change the look with theme tokens or `className`; eject a
   component (`astryx swizzle`) only when a token cannot say it.
 - **Not `@astryxdesign/lab`**: it is unpublished and experimental.
