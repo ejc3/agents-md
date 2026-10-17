@@ -61,7 +61,7 @@ properties (`defineTheme`), with a CLI made for agents.
   where one is a symlink to the other, either); look a component up with
   `npx astryx component <Name>`; start a page from `npx astryx template` rather than composing from scratch.
 - **One product theme per app.** Change the look with theme tokens or `className`; eject a
-  component (`astryx swizzle`) only when a token cannot say it.
+  component (`npx astryx swizzle <Name>`) only when a token cannot say it.
 - **Not `@astryxdesign/lab`**: it is unpublished and experimental.
 - **Not for surfaces with rules of their own**: wall and kiosk screens (TV, e-ink), canvases and
   games, printed sheets, email. Those keep their own stylesheet, and their pages do not load Astryx.
