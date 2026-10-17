@@ -42,6 +42,26 @@ not reachable from this box stays off it: deploys that need those run from the j
 box, so propose the change there or ask the owner. Only a public, ungated production launch needs
 the owner's go-ahead.
 
+## Interactive web pages are built on Astryx (owner, 2026-10-17)
+
+New interactive web pages (app chrome and navigation, forms, settings, editors, dialogs, lists)
+are built on Astryx, Meta's open-source design system (`@astryxdesign/core`,
+github.com/facebook/astryx): React 19 components with pre-built CSS, themed through CSS custom
+properties (`defineTheme`), with a CLI made for agents.
+
+- **Pin the exact version** (`"0.7.1"`, not `"^0.7.1"`): it is in beta. Upgrade in a pull request
+  of its own, with its codemods (`astryx upgrade --apply`).
+- **Use the CLI before writing a component.** Run `npx astryx init` once per project, so its
+  component index is in that project's `AGENTS.md` or `CLAUDE.md` (whichever the project keeps;
+  where one is a symlink to the other, either); look a component up with
+  `astryx component <Name>`; start a page from `astryx template` rather than composing from scratch.
+- **One product theme per app.** Change the look with theme tokens or `className`; eject a
+  component (`astryx swizzle`) only when a token cannot say it.
+- **Not `@astryxdesign/lab`**: it is unpublished and experimental.
+- **Not for surfaces with rules of their own**: wall and kiosk screens (TV, e-ink), canvases and
+  games, printed sheets, email. Those keep their own stylesheet, and their pages do not load Astryx.
+- **Existing projects keep their current UI stack**; move one to Astryx only when the owner asks.
+
 ## Credentials on this box
 
 This box's instance role gives agents these, with no key on disk. Load a secret into the environment, never onto a
