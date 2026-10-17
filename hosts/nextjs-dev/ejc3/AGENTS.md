@@ -96,8 +96,8 @@ WebGL game's browser tests run in software: one game's nine specs took about 75 
 - **Run the full browser suite in the pull request's CI.** Push the branch and let CI run it.
 - **When CI cannot run**, use the CPU box (`pbox`), or the GPU box (`gbox`) for anything rendered or
   timed. Say what it costs before starting one, and take it down afterwards.
-- **On this box, run only the specs a change touches**, a few at a time, with `--repeat-each` to check
-  for flakes. Never run the whole suite here.
+- **On this box, run only the specs a change touches**, a few at a time, with `--repeat-each=3` (Playwright needs
+  the count) to check for flakes. Never run the whole suite here.
 
 ## Reviewer Bots and the Merge Gate: a Time Budget, Not a Loop
 
