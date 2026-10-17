@@ -42,6 +42,31 @@ not reachable from this box stays off it: deploys that need those run from the j
 box, so propose the change there or ask the owner. Only a public, ungated production launch needs
 the owner's go-ahead.
 
+## Interactive web pages are built on Astryx (owner, 2026-10-17)
+
+New interactive web pages (app chrome and navigation, forms, settings, editors, dialogs, lists)
+are built on Astryx, Meta's open-source design system (`@astryxdesign/core`,
+github.com/facebook/astryx): React 19 components with pre-built CSS, themed through CSS custom
+properties (`defineTheme`), with a CLI made for agents.
+
+- **Pin the exact version** (`"0.7.1"`, not `"^0.7.1"`) of `@astryxdesign/core` and of its CLI,
+  `@astryxdesign/cli` (a dev dependency): it is in beta. Upgrade both in a pull request of their own,
+  with its codemods (`npx astryx upgrade --apply`).
+- **The CLI is `@astryxdesign/cli`, never the unscoped `astryx` package.** That name on npm belongs
+  to someone else; `npx astryx` in a project without the CLI installed downloads and runs it. Add the
+  CLI first (`npm install --save-dev --save-exact @astryxdesign/cli@0.7.1`), so `npx astryx` runs the
+  project's own copy, or call it by its full name (`npx @astryxdesign/cli@0.7.1 ...`).
+- **Use the CLI before writing a component.** Run `npx astryx init` once per project, so its
+  component index is in that project's `AGENTS.md` or `CLAUDE.md` (whichever the project keeps;
+  where one is a symlink to the other, either); look a component up with
+  `npx astryx component <Name>`; start a page from `npx astryx template` rather than composing from scratch.
+- **One product theme per app.** Change the look with theme tokens or `className`; eject a
+  component (`npx astryx swizzle <Name>`) only when a token cannot say it.
+- **Not `@astryxdesign/lab`**: it is unpublished and experimental.
+- **Not for surfaces with rules of their own**: wall and kiosk screens (TV, e-ink), canvases and
+  games, printed sheets, email. Those keep their own stylesheet, and their pages do not load Astryx.
+- **Existing projects keep their current UI stack**; move one to Astryx only when the owner asks.
+
 ## Credentials on this box
 
 This box's instance role gives agents these, with no key on disk. Load a secret into the environment, never onto a
