@@ -88,6 +88,17 @@ Not reachable from this box (administration only, or the metal boxes): productio
 The full, current list, with what each is for, is in the public `ejc3/aws` repo:
 `curl -fsSL https://raw.githubusercontent.com/ejc3/aws/main/AGENTS.md | sed -n '/^### AI services on the dev boxes/,/^### Sites also deploying/p'`
 
+## Browser test suites run in CI, not on this box (owner, 2026-10-17)
+
+The owner's rule: "pbox or gpu locally, but prefer ci". This box has four shared cores and no GPU, so a
+WebGL game's browser tests run in software: one game's nine specs took about 75 minutes here.
+
+- **Run the full browser suite in the pull request's CI.** Push the branch and let CI run it.
+- **When CI cannot run**, use the CPU box (`pbox`), or the GPU box (`gbox`) for anything rendered or
+  timed. Say what it costs before starting one, and take it down afterwards.
+- **On this box, run only the specs a change touches**, a few at a time, with `--repeat-each` to check
+  for flakes. Never run the whole suite here.
+
 ## Reviewer Bots and the Merge Gate: a Time Budget, Not a Loop
 
 The owner's rule (2026-10-12): "We can't take hours on this stuff unless it's super critical,"
