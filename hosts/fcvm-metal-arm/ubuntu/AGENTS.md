@@ -998,6 +998,47 @@ park it as "a design question for the maintainers" or list it as open work. Rule
 what may go to an upstream project (issues, pull requests, comments) still apply as given for
 that project.
 
+## Driving the MacBook (surveyed 2026-10-18)
+
+The owner's MacBook is reachable from this account through two aliases. Use the one that fits the job; the owner wants
+no manual steps at the Mac.
+
+| Alias | Lands in | Use it for | Cannot |
+|---|---|---|---|
+| `ssh macbook` | macOS Remote Login, with full disk access | builds, scripts, files, the scratch drive (`/Volumes/Scratch/<project>`) with no privacy prompts | use the login keychain (`codesign` fails), reliably send Apple Events to apps |
+| `ssh macbook-desktop` | the owner's desktop session (a private sshd on the Mac's loopback, reached through `macbook`) | driving Chrome and other apps with `osascript`, the keychain and code signing, screenshots and clicks with Peekaboo (`~/.local/bin/peekaboo`) | touch the external drive without a prompt per program: keep its files on the internal disk |
+
+- **Commands fed on stdin**: when a script reaches the Mac through `ssh ... 'bash -s' < script`, every `ssh` inside that
+  script needs `-n`, or it swallows the rest of the script.
+- **Long jobs** (an Xcode archive, a signing run): a one-off LaunchAgent in the GUI domain (`launchctl bootstrap
+  gui/$(id -u) job.plist`, no KeepAlive) keeps running if the connection drops. Log to a file.
+
+### Chrome (the owner's real, signed-in browser)
+
+The owner's logins live there; never reach for a separate automated browser for signed-in sites.
+
+- **Work in your own window**: `make new window with properties {mode:"normal"}`, do the work, close it. Never act on the
+  owner's tabs. A new window opens in the profile and mode of the window in front: if an incognito window or a second
+  profile is in front, the new window is signed out. Check before relying on a login.
+- **Address tabs by URL, not by "front window"**: the owner switches windows while you work. Loop over windows and tabs
+  and match on a URL substring.
+- **Always wrap calls**: `with timeout of N seconds ... end timeout`. Without it a stuck call hangs the session.
+- **After a click that saves** (Create, Delete, Install, Submit), wait 8-10 s before closing the window, or the request
+  dies with it.
+- **Known wedge**: JavaScript from Apple Events can stop working in every window of one profile (`AppleEvent timed out
+  (-1712)` even for `1+1`) while plain AppleScript queries still answer. Only quitting and relaunching Chrome clears it,
+  and that reopens the owner's tabs but can lose half-typed text: ask the owner first.
+- **Clicking**: the owner authorizes clicking through setups they asked for (create an app, install it, request API
+  access, generate a key). The owner signs in and confirms passkeys. Never pay, never accept a contract that commits
+  money, never answer another app's dialog (Roblox, system prompts) on the owner's behalf.
+
+### Peekaboo
+
+`peekaboo see --mode screen --no-elements --path /tmp/s.png` for the screen, `peekaboo window list --app PID:<pid>
+--json` then `peekaboo see --window-id <id>` for one window. App names are ambiguous ("Google Chrome" matches its
+helpers too): use `PID:` from `pgrep -x "Google Chrome"`. It needs the desktop session, where Screen Recording and
+Accessibility are granted.
+
 ## AI services on this box (use them if a task needs them)
 
 - **ElevenLabs** (voice, sound effects, music for the games). The API key is in AWS Secrets
