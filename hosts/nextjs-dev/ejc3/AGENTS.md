@@ -88,46 +88,71 @@ Not reachable from this box (administration only, or the metal boxes): productio
 The full, current list, with what each is for, is in the public `ejc3/aws` repo:
 `curl -fsSL https://raw.githubusercontent.com/ejc3/aws/main/AGENTS.md | sed -n '/^### AI services on the dev boxes/,/^### Sites also deploying/p'`
 
-## Driving the MacBook (surveyed 2026-10-18)
+## Driving the MacBook
 
-The owner's MacBook is reachable from this account (ejc3 only; the other accounts have none) through two aliases. Use the one that fits the job; the owner wants
-no manual steps at the Mac.
+There is one way into the owner's MacBook: **`ssh mac`**. It goes through Cloudflare Access (this account's own service
+token; only this account has one) to macOS Remote Login on the Mac. The owner wants no manual steps at the Mac.
 
-| Alias | Lands in | Use it for | Cannot |
-|---|---|---|---|
-| `ssh macbook` | macOS Remote Login, with full disk access | builds, scripts, files, the scratch drive (`/Volumes/Scratch/<project>`) with no privacy prompts | use the login keychain (`codesign` fails), reliably send Apple Events to apps |
-| `ssh macbook-desktop` | the owner's desktop session (a private sshd on the Mac's loopback, reached through `macbook`) | driving Chrome and other apps with `osascript`, the keychain and code signing, screenshots and clicks with Peekaboo (`~/.local/bin/peekaboo`) | touch the external drive without a prompt per program: keep its files on the internal disk |
+| Need | How |
+|---|---|
+| Builds, scripts, files, the scratch drive (`/Volumes/Scratch/<project>`), a freshly built binary included | plain `ssh mac` |
+| `osascript` to System Events and Google Chrome | plain `ssh mac` |
+| Screenshots, clicks, typing | `peekaboo` (through `ssh mac`) |
+| The login keychain: `codesign`, `xcodebuild archive` / `-exportArchive` with signing, `security` on it | `mac-gui [--timeout S] -- CMD` |
 
-- **Commands fed on stdin**: when a script reaches the Mac through `ssh ... 'bash -s' < script`, every `ssh` inside that
-  script needs `-n`, or it swallows the rest of the script.
-- **Long jobs** (an Xcode archive, a signing run): a one-off LaunchAgent in the GUI domain (`launchctl bootstrap
-  gui/$(id -u) job.plist`, no KeepAlive) keeps running if the connection drops. Log to a file.
+A plain Remote Login session cannot reach the login keychain (`errSecInternalComponent`); `mac-gui` runs the command in
+the logged-in GUI session and returns its output and exit status (124 on timeout).
+
+### Sharing the Mac with other sessions
+
+Several agents use the Mac at once. Two small tools keep them out of each other's way:
+
+- **`mac-lease`**: take the desktop lease before driving the screen or relaunching an app, release it after.
+  `mac-lease run NAME -- CMD` for one command; `take NAME` / `release NAME` across several calls; `status` shows who holds
+  it. `peekaboo` waits while someone else holds it (pass yours as `MAC_LEASE=NAME`). Looking never waits.
+- **`mac-build`**: at most two heavy builds at once. The `swift`, `xcodebuild` and `xcrun` on the Mac's `PATH` already go
+  through it; a third build waits. `mac-build --status` shows the slots.
+
+### Permission prompts
+
+- **Approve permission prompts your own work triggers** (Automation, Accessibility, Screen Recording, Full Disk Access,
+  keychain access for signing): click Allow. Prefer granting them to Remote Login (`sshd-keygen-wrapper`), the identity
+  every `ssh mac` session shares. A System Settings toggle that asks for Touch ID or a password goes to the owner.
+- **Never answer another app's own dialog** (a keychain password prompt from another app, a mail account password, Time
+  Machine, an app's sign-in): take a screenshot, report what it asks, leave it.
 
 ### Chrome (the owner's real, signed-in browser)
 
 The owner's logins live there; never reach for a separate automated browser for signed-in sites.
 
-- **Work in your own window**: `make new window with properties {mode:"normal"}`, do the work, close it. Never act on the
-  owner's tabs. A new window opens in the profile and mode of the window in front: if an incognito window or a second
-  profile is in front, the new window is signed out. Check before relying on a login.
-- **Address tabs by URL, not by "front window"**: the owner switches windows while you work. Loop over windows and tabs
-  and match on a URL substring.
-- **Always wrap calls**: `with timeout of N seconds ... end timeout`. Without it a stuck call hangs the session.
-- **After a click that saves** (Create, Delete, Install, Submit), wait 8-10 s before closing the window, or the request
-  dies with it.
-- **Known wedge**: JavaScript from Apple Events can stop working in every window of one profile (`AppleEvent timed out
-  (-1712)` even for `1+1`) while plain AppleScript queries still answer. Only quitting and relaunching Chrome clears it,
-  and that reopens the owner's tabs but can lose half-typed text: ask the owner first.
+- **Take the lease first**, and never relaunch Chrome while another session is mid-flow (a relaunch can sign the owner
+  out of sites such as App Store Connect).
+- **Work in your own window and keep it by id**: `set wid to id of (make new window with properties {mode:"normal"})`,
+  then `tell window id wid`. Never act on the owner's tabs, and never match tabs by URL alone (the owner may have the same
+  site open). Close your window when done.
+- **Check the login, don't assume it**: a new window opens in the profile of the window in front, and a second profile
+  may be signed in to a different account. Read the page's signed-in state before acting.
+- **Always wrap calls**: `with timeout of N seconds ... end timeout`.
+- **After a click that saves** (Create, Delete, Install, Submit), wait 8-10 s before closing the window.
+- **Known wedge**: JavaScript from Apple Events can stop answering in every window of one profile (`AppleEvent timed out
+  (-1712)`) while plain AppleScript still works. Only a Chrome relaunch clears it: take the lease and ask the owner first.
 - **Clicking**: the owner authorizes clicking through setups they asked for (create an app, install it, request API
-  access, generate a key). The owner signs in and confirms passkeys. Never pay, never accept a contract that commits
-  money, never answer another app's dialog (Roblox, system prompts) on the owner's behalf.
+  access, generate a key). The owner signs in and confirms passkeys and two-factor codes. Never pay and never accept a
+  contract that commits money.
 
 ### Peekaboo
 
-`peekaboo see --mode screen --no-elements --path /tmp/s.png` for the screen, `peekaboo window list --app PID:<pid>
---json` then `peekaboo see --window-id <id>` for one window. App names are ambiguous ("Google Chrome" matches its
-helpers too): use `PID:` from `pgrep -x "Google Chrome"`. It needs the desktop session, where Screen Recording and
-Accessibility are granted.
+`peekaboo see --mode screen --no-elements --path /tmp/s.png` for the screen; `peekaboo window list --app PID:<pid>
+--json` then `peekaboo see --window-id <id>` for one window. Use `PID:` from `pgrep -x "Google Chrome"`: app names
+match helpers too.
+
+### Signing and long jobs
+
+The build runs over plain `ssh mac`; only the signing steps go through `mac-gui`. A job that must survive the
+connection dropping (an upload) runs as a one-off LaunchAgent in the GUI domain (`launchctl bootstrap gui/$(id -u)
+job.plist`, `RunAtLoad`, no `KeepAlive`, logging to a file; `bootout` afterwards). TestFlight groups, testers and build
+assignment go through the App Store Connect API key (`games-worth-watching/app-store-connect`), not Chrome. When a
+script reaches the Mac on stdin (`ssh mac 'zsh -s' < script`), give every `ssh` inside it `-n`.
 
 ## Browser test suites run in CI, not on this box (owner, 2026-10-17)
 
