@@ -88,6 +88,61 @@ Not reachable from this box (administration only, or the metal boxes): productio
 The full, current list, with what each is for, is in the public `ejc3/aws` repo:
 `curl -fsSL https://raw.githubusercontent.com/ejc3/aws/main/AGENTS.md | sed -n '/^### AI services on the dev boxes/,/^### Sites also deploying/p'`
 
+## Driving the MacBook
+
+How to reach the owner's Mac (the alias, the route, which session does what, and signing) is machine-local: it is in
+`~/.claude/local.md` on this box, not in this public file. These rules apply whichever way you reach it.
+
+### Sharing the Mac with other sessions
+
+Several agents use the Mac at once. Two small tools keep them out of each other's way:
+
+- **`mac-lease`**: take the desktop lease before driving the screen or relaunching an app, release it after.
+  `mac-lease run NAME -- CMD` for one command; `take NAME` / `release NAME` across several calls; `status` shows who holds
+  it. `peekaboo` waits while someone else holds it (pass yours as `MAC_LEASE=NAME`). Looking never waits.
+- **`mac-build`**: at most two heavy builds at once. The `swift`, `xcodebuild` and `xcrun` on the Mac's `PATH` already go
+  through it; a third build waits. `mac-build --status` shows the slots.
+
+### Permission prompts
+
+- **Approve permission prompts your own work triggers** (Automation, Accessibility, Screen Recording, Full Disk Access,
+  keychain access for signing): click Allow. Prefer granting them to the one identity
+  every session shares (see `~/.claude/local.md`). A System Settings toggle that asks for Touch ID or a password goes to the owner.
+- **Never answer another app's own dialog** (a keychain password prompt from another app, a mail account password, Time
+  Machine, an app's sign-in): take a screenshot, report what it asks, leave it.
+
+### Chrome (the owner's real, signed-in browser)
+
+The owner's logins live there; never reach for a separate automated browser for signed-in sites.
+
+- **Take the lease first**, and never relaunch Chrome while another session is mid-flow (a relaunch can sign the owner
+  out of sites such as App Store Connect).
+- **Work in your own window and keep it by id**: `set wid to id of (make new window with properties {mode:"normal"})`,
+  then `tell window id wid`. Never act on the owner's tabs, and never match tabs by URL alone (the owner may have the same
+  site open). Close your window when done.
+- **Check the login, don't assume it**: a new window opens in the profile of the window in front, and a second profile
+  may be signed in to a different account. Read the page's signed-in state before acting.
+- **Always wrap calls**: `with timeout of N seconds ... end timeout`.
+- **After a click that saves** (Create, Delete, Install, Submit), wait 8-10 s before closing the window.
+- **Known wedge**: JavaScript from Apple Events can stop answering in every window of one profile (`AppleEvent timed out
+  (-1712)`) while plain AppleScript still works. Only a Chrome relaunch clears it: take the lease and ask the owner first.
+- **Clicking**: the owner authorizes clicking through setups they asked for (create an app, install it, request API
+  access, generate a key). The owner signs in and confirms passkeys and two-factor codes. Never pay and never accept a
+  contract that commits money.
+
+### Peekaboo
+
+`peekaboo see --mode screen --no-elements --path /tmp/s.png` for the screen; `peekaboo window list --app PID:<pid>
+--json` then `peekaboo see --window-id <id>` for one window. Use `PID:` from `pgrep -x "Google Chrome"`: app names
+match helpers too.
+
+### Signing and long jobs
+
+Only the signing steps need the desktop session (see `~/.claude/local.md`). A job that must survive the connection
+dropping (an upload) runs as a one-off LaunchAgent in the GUI domain (`RunAtLoad`, no `KeepAlive`, logging to a file;
+bootout afterwards). TestFlight groups, testers and build assignment go through the App Store Connect API key, not
+Chrome. When a script reaches the Mac on stdin, give every `ssh` inside it `-n`.
+
 ## Browser test suites run in CI, not on this box (owner, 2026-10-17)
 
 The owner's rule: "pbox or gpu locally, but prefer ci". This box has four shared cores and no GPU, so a
@@ -173,3 +228,12 @@ off, merges it and applies or distributes it.
 - Something only the jumpbox can do (a live AWS or Cloudflare change)? File an issue in `ejc3/aws`.
 
 Every other repository works as it always has: this rule does not apply to them.
+
+## Host: nextjs-dev (ejc3) — machine-local instructions
+
+What only this account needs to know and the public repository must not hold (how to reach the owner's Mac, local
+aliases and services) is kept in a file on the box, outside git, and read from here:
+
+@~/.claude/local.md
+
+Change that file on the box itself. If it is missing, nothing breaks; ask the owner.
