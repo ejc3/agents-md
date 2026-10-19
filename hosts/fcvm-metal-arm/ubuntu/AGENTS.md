@@ -1000,18 +1000,8 @@ that project.
 
 ## Driving the MacBook
 
-There is one way into the owner's MacBook: **`ssh mac`**. It goes through Cloudflare Access (this account's own service
-token) to macOS Remote Login on the Mac. The owner wants no manual steps at the Mac.
-
-| Need | How |
-|---|---|
-| Builds, scripts, files, the scratch drive (`/Volumes/Scratch/<project>`), a freshly built binary included | plain `ssh mac` |
-| `osascript` to System Events and Google Chrome | plain `ssh mac` |
-| Screenshots, clicks, typing | `peekaboo` (through `ssh mac`) |
-| The login keychain: `codesign`, `xcodebuild archive` / `-exportArchive` with signing, `security` on it | `mac-gui [--timeout S] -- CMD` |
-
-A plain Remote Login session cannot reach the login keychain (`errSecInternalComponent`); `mac-gui` runs the command in
-the logged-in GUI session and returns its output and exit status (124 on timeout).
+How to reach the owner's Mac (the alias, the route, which session does what, and signing) is machine-local: it is in
+`~/.claude/local.md` on this box, not in this public file. These rules apply whichever way you reach it.
 
 ### Sharing the Mac with other sessions
 
@@ -1026,8 +1016,8 @@ Several agents use the Mac at once. Two small tools keep them out of each other'
 ### Permission prompts
 
 - **Approve permission prompts your own work triggers** (Automation, Accessibility, Screen Recording, Full Disk Access,
-  keychain access for signing): click Allow. Prefer granting them to Remote Login (`sshd-keygen-wrapper`), the identity
-  every `ssh mac` session shares. A System Settings toggle that asks for Touch ID or a password goes to the owner.
+  keychain access for signing): click Allow. Prefer granting them to the one identity
+  every session shares (see `~/.claude/local.md`). A System Settings toggle that asks for Touch ID or a password goes to the owner.
 - **Never answer another app's own dialog** (a keychain password prompt from another app, a mail account password, Time
   Machine, an app's sign-in): take a screenshot, report what it asks, leave it.
 
@@ -1058,11 +1048,10 @@ match helpers too.
 
 ### Signing and long jobs
 
-The build runs over plain `ssh mac`; only the signing steps go through `mac-gui`. A job that must survive the
-connection dropping (an upload) runs as a one-off LaunchAgent in the GUI domain (`launchctl bootstrap gui/$(id -u)
-job.plist`, `RunAtLoad`, no `KeepAlive`, logging to a file; `bootout` afterwards). TestFlight groups, testers and build
-assignment go through the App Store Connect API key (`games-worth-watching/app-store-connect`), not Chrome. When a
-script reaches the Mac on stdin (`ssh mac 'zsh -s' < script`), give every `ssh` inside it `-n`.
+Only the signing steps need the desktop session (see `~/.claude/local.md`). A job that must survive the connection
+dropping (an upload) runs as a one-off LaunchAgent in the GUI domain (`RunAtLoad`, no `KeepAlive`, logging to a file;
+bootout afterwards). TestFlight groups, testers and build assignment go through the App Store Connect API key, not
+Chrome. When a script reaches the Mac on stdin, give every `ssh` inside it `-n`.
 
 ## AI services on this box (use them if a task needs them)
 
