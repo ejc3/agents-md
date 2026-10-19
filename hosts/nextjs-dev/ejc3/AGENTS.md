@@ -90,8 +90,10 @@ The full, current list, with what each is for, is in the public `ejc3/aws` repo:
 
 ## Driving the MacBook
 
-Use the `drive-mac` skill (ejc3/claude-skills) for anything on the owner's Mac. How to reach it is in
-`~/.claude/local.md`, never here.
+Claude Code: use the `drive-mac` skill. How to reach the Mac is in `~/.claude/local.md`, never here. Always:
+take `mac-lease` before driving the screen or relaunching an app; approve permission prompts your own work triggers
+and nothing else (another app's dialog: screenshot and report); work only in your own Chrome window; never pay or
+accept a contract; the owner signs in and approves two-factor codes.
 
 ## Browser test suites run in CI, not on this box (owner, 2026-10-17)
 
