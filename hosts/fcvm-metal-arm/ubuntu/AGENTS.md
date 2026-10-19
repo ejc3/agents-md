@@ -946,10 +946,11 @@ This box is shared: other sessions and users run builds and tests on it, so any 
 here is noise. Compile and run tests here; take every number that goes into a record, a write-up
 or a decision on a dedicated parallel box (`pbox`), and throw away anything measured here.
 
-- `pbox status` first: four slots (1-4), each its own instance and work volume. Use a slot that
+- `pbox status` first: eight slots (1-8), each its own instance and work volume. Use a slot that
   is down or that your own job brought up; never take over a box another job is using.
-- `pbox up N` launches it (spot where it can); `PARALLEL_BOX_TYPES="c8gd.48xlarge ..."` asks
-  for instance types with local NVMe when the job does disk I/O. `pbox ip N`, `pbox ssh N`.
+- `pbox up N FLAVOR` launches it (spot where it can); a flavor is required. Pick the smallest in
+  `pbox flavors` that fits the job's shape (compute, general, memory, or storage for local NVMe at
+  `/mnt/nvme`) and size (32 to 192 vCPU); `kvm-96`/`kvm-192` only for `/dev/kvm`. `pbox ip N`, `pbox ssh N`.
 - In a Claude Code session the HTTPS proxy asks for a client certificate, which `pbox`'s AWS
   calls (and git, gh) cannot give: they fail with certificate errors. Run them through a
   local plain-HTTP forwarder on a kernel-assigned port, `socat TCP-LISTEN:$P,bind=127.0.0.1,fork
