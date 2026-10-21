@@ -348,17 +348,20 @@ jumpbox reviews and merges them, and security and correctness findings block.
 - **Every push resets the head review,** and every merge to main can make the other open PRs
   conflict. Batch fixes into one push, merge each PR as soon as it clears, and merge PRs that
   touch the same files back to back.
-- **A stack gets one review round, then fixes go forward and it lands through the top.** Open
-  every PR in the stack ready (a later draft-to-ready flip re-triggers every review) and review
-  the cumulative diff once. After that round, fix a finding in a lower layer with one commit on
-  the top PR, not in the layer that introduced it: rebasing a fix into a lower layer
-  force-pushes every branch above, resets every head review, and starts another round. Fix a
-  lower layer in place only when the stack would be unsafe merged up to it. From the second
-  round, only a wrong result, number or doc, or an unsafe merged state blocks. When CI is green
-  and every thread is answered, land it (`gh stack merge <top> --rebase`, pr-diligence skill)
-  without waiting for reviews a rebase, a ready flip or a CI-only commit triggered.
-  Incident, 2026-10-21: an eight-PR stack ran six Codex rounds because each round's fixes were
-  rebased into the lower PRs; the owner: "We are going around in circles."
+- **A stack gets one review round, then fixes go forward and it lands through the top.**
+  - Mark every PR in the stack ready at once, before the review round (a draft-to-ready flip
+    re-triggers every review), and review the cumulative diff (`main..top`); landing it is the pr-diligence skill's "Stacks of PRs".
+  - Fix Medium and High findings (Codex P2 and P1), but on the top PR, in one commit per round.
+    Rebasing a fix into the layer that introduced it force-pushes every branch above it, resets
+    every head review and starts another round. Only a Critical finding (P0), or one that would
+    leave the stack unsafe if merged up to that layer, is fixed in that layer.
+  - Low findings (P3) and hostile-input hardening go to one tracking issue
+    (`DISAGREE: not blocking; tracked in #N`).
+  - When CI is green and every thread is answered, land the stack with
+    `gh stack merge <top> --rebase`, without waiting for reviews that a rebase, a ready flip or a
+    CI-only commit triggered.
+  - Incident, 2026-10-21: an eight-PR stack went through six Codex rounds because each round's
+    fixes were rebased into the lower PRs.
 - **Disposition replies must open with the exact prefix**: `RED-VERIFIED:`, `NOT-A-DEFECT:`
   or `DISAGREE:`. A gate rejected "RED-VERIFIED (source-level):". A doc or wording fix is
   `NOT-A-DEFECT:`.
