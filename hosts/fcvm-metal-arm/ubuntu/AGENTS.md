@@ -638,6 +638,9 @@ The owner, on a day of wasted CI runs and review rounds: "You can't do useless c
 record!! Reviews!!", "We have to be reasonable here". On what merging requires: "I don't need all that fanciness.
 Just that there is no unresolved threads ... guard against no review on new commit unless the pr marked trivial".
 
+Where "Stack of PRs" below says to push each phase and wait for CI, or to rebase and force-push later branches,
+this section wins: settle the stack as drafts and mark it ready once; never force-push a ready PR.
+
 - **What merging requires.** Every review thread resolved (GitHub's "require conversation resolution", set in the
   repository's ruleset) and a review of the head commit. Opening an answer with `RED-VERIFIED:`, `NOT-A-DEFECT:` or
   `DISAGREE:` is encouraged, because it records the decision, but resolving the thread is what counts.
