@@ -142,9 +142,9 @@ jumpbox reviews and merges them, and security and correctness findings block.
     CI-only commit triggered.
   - Incident, 2026-10-21: an eight-PR stack went through six Codex rounds because each round's
     fixes were rebased into the lower PRs.
-- **Disposition replies must open with the exact prefix**: `RED-VERIFIED:`, `NOT-A-DEFECT:`
-  or `DISAGREE:`. A gate rejected "RED-VERIFIED (source-level):". A doc or wording fix is
-  `NOT-A-DEFECT:`.
+- **Open an answer with a disposition** (`RED-VERIFIED:`, `NOT-A-DEFECT:` or `DISAGREE:`, the exact
+  prefix with its colon; a doc or wording fix is `NOT-A-DEFECT:`). It is encouraged, not required:
+  since 2026-10-22 what merging requires is a resolved thread (see "PR flow" below).
 - **When a bot cannot review** (the Codex GitHub reviewer has its own usage limit, separate
   from the `codex` CLI), review the unreviewed delta with the CLI: `codex exec -s read-only`
   with a prompt naming the range (`git diff <last reviewed sha>..<head sha>`) and asking for a
@@ -157,6 +157,31 @@ jumpbox reviews and merges them, and security and correctness findings block.
   - Greptile runs only on an `@greptileai review` comment. It reports through a "Greptile
     Review" check and a summary below `<!-- greptile_comment -->` in the PR body, not through
     review comments, so look for those when checking whether it ran.
+
+## PR flow: resolved threads, a reviewed head, no wasted runs (owner, 2026-10-22)
+
+The owner, on a day of wasted CI runs and review rounds: "You can't do useless ci runs like this", "No useless
+record!! Reviews!!", "We have to be reasonable here". On what merging requires: "I don't need all that fanciness.
+Just that there is no unresolved threads ... guard against no review on new commit unless the pr marked trivial".
+
+- **What merging requires.** Every review thread resolved (GitHub's "require conversation resolution", set in the
+  repository's ruleset) and a review of the head commit. Opening an answer with `RED-VERIFIED:`, `NOT-A-DEFECT:` or
+  `DISAGREE:` is encouraged, because it records the decision, but resolving the thread is what counts.
+- **A reviewed head.** A Codex review or a Codex 👍 after the latest push covers the head, as does an earlier review
+  when a rebase left the PR's own change identical. Otherwise ask for one (`@codex review`), or mark the PR trivial with
+  one line in its description, `Codex: skipped — <reason>`. Marking a PR trivial is the agent's call.
+- **Settle while draft, then flip once.** A ready PR runs CI on every push and every flip. While it is a draft: link a
+  stack (`gh stack link`), rebase every layer on current `main`, and finish the fix rounds. Then mark it ready once,
+  lower layers first and the tip last. Never push and flip in the same step, never cycle draft and ready, and never
+  force-push ready PRs to fix a topology.
+- **No useless reviews or records.** One ready flip is the review round. Do not request a review of a rebase whose own
+  patch is unchanged, and do not post a comment that only restates a clean result.
+- **Watch, do not poll by hand.** Wait on a PR with the repository's watcher in the background (in dolphin-labs,
+  `dolphin pr wait <N>`), which returns on any new review, comment, CI result or push. Never write a grep or jq polling
+  loop over `gh` output: they break quietly. The watcher reports and the agent decides.
+- **Test time has hard caps, and a breach fails CI.** Run suites in parallel on the many-core self-hosted runners;
+  find the slow tail before adding cores. Set every cap (per test, per suite, per job) from a measured run with
+  headroom, and change one only after measuring again.
 
 ## Interactive sessions: mark a checkout or worktree for interactive use
 
