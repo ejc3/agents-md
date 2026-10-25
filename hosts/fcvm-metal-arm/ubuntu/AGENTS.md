@@ -1054,8 +1054,8 @@ Use the `drive-mac` skill (Claude Code: `~/.claude/skills`; Codex: `~/.agents/sk
   log or a commit, and never print it:
   `export ELEVENLABS_API_KEY=$(aws secretsmanager get-secret-value --region us-west-1 --secret-id games/elevenlabs-api-key --query SecretString --output text)`
   The deployed games already have it as the server-side Vercel env `ELEVENLABS_API_KEY`; keep
-  it server-side (never `NEXT_PUBLIC_`). Pay-as-you-go account: generate what is needed, not
-  in bulk. Managed in ejc3/aws `dev-ai-services.tf`.
+  it server-side (never `NEXT_PUBLIC_`). Planned offline batches are supported with estimated spend, bounded concurrency,
+  capped retries and saved outputs. Generate once and ship finished assets. Managed in ejc3/aws `dev-ai-services.tf`.
 - **DeepSeek via opencode.** `opencode` runs DeepSeek V3.2 on Amazon Bedrock through this box's
   instance role, with no key (the managed `~/.zshrc` wraps it). `deepseek.r1-v1:0` is also
   allowed. Managed in ejc3/aws `dev-user-data.tf`.
@@ -1098,6 +1098,19 @@ command line, into a file in a repo or a commit; never print one.
 - **Browserbase** (hosted browsers): JSON secret `browserbase/credentials`; export every key with
   `eval "$(aws secretsmanager get-secret-value --region us-west-1 --secret-id browserbase/credentials --query SecretString --output text | jq -r 'to_entries[] | "export \(.key)=\(.value|@sh)"')"`
 - **ElevenLabs** (voice and sound): `games/elevenlabs-api-key`, as `ELEVENLABS_API_KEY`.
+- **Stability AI** (instrumental music, ambience, audio edits, images and image-to-3D):
+  `games/stability-api-key` in us-west-1, as `STABILITY_API_KEY`. It has the same
+  development-role read boundary as ElevenLabs. Keys stay in memory during generation.
+- **Offline creative assets:** use `~/.claude/skills/creative-assets/SKILL.md`
+  (Codex mirror: `~/.agents/skills/creative-assets/SKILL.md`). A self-contained copy,
+  provider pricing, capabilities, licenses and batch guidance are also maintained in
+  [Colton Games](https://github.com/CoderColton/colton-games/tree/main/.claude/skills/creative-assets).
+  Prefer ElevenLabs for voices and short loopable effects; compare Stability for long
+  instrumental tracks, ambience and visual assets. Start with a small quality pilot,
+  estimate cost, cap concurrent work and retry spend, retain generation IDs and accepted
+  files, then ship the finished files for offline playback. A paid Suno website account
+  is not an official API; include its private adapter in unattended batches only after
+  real login/generation and renewal checks pass. Do not send credentials to public demos.
 - **Colton Games, non-production**: `colton-games/nonprod/auth` and `colton-games/nonprod/push` (JSON; export as above).
 - **Claude on Amazon Bedrock**: every Anthropic model through the instance role (Haiku 5.5: region `us-west-2`, model
   `us.anthropic.claude-haiku-5-5`); DeepSeek through `opencode`.
