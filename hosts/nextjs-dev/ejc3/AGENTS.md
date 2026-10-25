@@ -77,6 +77,21 @@ command line, into a file in a repo or a commit; never print one.
 - **Browserbase** (hosted browsers): JSON secret `browserbase/credentials`; export every key with
   `eval "$(aws secretsmanager get-secret-value --region us-west-1 --secret-id browserbase/credentials --query SecretString --output text | jq -r 'to_entries[] | "export \(.key)=\(.value|@sh)"')"`
 - **ElevenLabs** (voice and sound): `games/elevenlabs-api-key`, as `ELEVENLABS_API_KEY`.
+- **Stability AI** (instrumental music, ambience, audio edits, images and image-to-3D):
+  `games/stability-api-key` in us-west-1, as `STABILITY_API_KEY`. It has the same
+  development-role read boundary as ElevenLabs. Keys stay in memory during generation.
+- **Offline creative assets:** when installed, use `~/.claude/skills/creative-assets/SKILL.md`
+  (Codex mirror: `~/.agents/skills/creative-assets/SKILL.md`). A self-contained copy,
+  provider pricing, capabilities, licenses and batch guidance are also maintained in
+  [Colton Games](https://github.com/CoderColton/colton-games/tree/main/.claude/skills/creative-assets).
+  If the local skill is absent after a rebuild, read that repository copy before choosing
+  a provider or starting a batch; the instructions below remain self-contained.
+  Prefer ElevenLabs for voices and short loopable effects; compare Stability for long
+  instrumental tracks, ambience and visual assets. Start with a small quality pilot,
+  estimate cost, cap concurrent work and retry spend, retain generation IDs and accepted
+  files, then ship the finished files for offline playback. A paid Suno website account
+  is not an official API; include its private adapter in unattended batches only after
+  real login/generation and renewal checks pass. Do not send credentials to public demos.
 - **Colton Games, non-production**: `colton-games/nonprod/auth` and `colton-games/nonprod/push` (JSON; export as above).
 - **Claude Haiku 5.5 on Amazon Bedrock**: bedrock-runtime, region `us-west-2`, model `us.anthropic.claude-haiku-5-5`,
   credentials from the instance role. No other Bedrock model here.
