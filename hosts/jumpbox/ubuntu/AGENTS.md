@@ -279,21 +279,23 @@ Before creating a PR:
 7. ✅ Note any breaking changes or migration steps
 8. ✅ Include test results if applicable
 
-## Nothing a person made is lost to a restart (owner, 2026-10-31)
+## Acknowledged user state survives a restart (owner, 2026-10-31)
 
-The owner, after a deploy wiped a live party: "we can never have stateless things that lose data". State a person would
-miss after a deploy, a crash or a host moving the process (a room, a session, a queue of edits, a cart, what is
-playing) lives in a durable store, never only in a process's memory.
+The owner, after a deploy wiped a live party: "we can never have stateless things that lose data". User state a service
+has acknowledged and a person would miss after a deploy, a crash or a host moving the process (a room, a session,
+a queue of edits, a cart, what is playing) lives in a durable store, never only in a process's memory.
 
-- **Durable means:** written on change within a stated bound (or before the change is acknowledged), flushed on a
-  shutdown signal within the platform's grace period, and restored when the process starts or the session is next
-  touched. A per-session object store key, a database row or a Durable Object all qualify; a module-level map does not.
-- **Memory alone is only for** caches that can be rebuilt and state a client re-sends by itself, and the code says
-  which each one is.
-- **Proof:** every service that holds such state has a restart test in CI: kill it mid-session (and once with a shutdown
-  signal), start it again, and the session continues with nothing lost. A missing restart test is a missing feature.
-- **Deploys:** a deploy that would drop such state is a defect, not a cost. Until the state is durable, do not deploy
-  while people are using it; say so and ask.
+- **Durable means:** persisted server-side before acknowledging the change, and restored on process start or when the session
+  is next touched. A per-session object store key, a database row or a Durable Object all qualify; a module-level map
+  does not. Flush pending writes within the shutdown grace period, but do not rely on a shutdown signal for crash safety.
+- **Memory alone is only for** rebuildable caches and pending changes recoverable from a durable client outbox
+  retained until the server acknowledges a durable write; label these in code. Unsent input without a retained copy
+  is outside this guarantee.
+- **Proof:** every service holding such state has a restart test in CI: acknowledge a change, kill the process
+  immediately without a shutdown signal, restart it, and verify all acknowledged state remains. Repeat with a shutdown
+  signal. A missing restart test is a missing feature.
+- **Deploys:** a deploy that would drop acknowledged state is a defect, not a cost. Until the state is durable, do not
+  deploy while people are using it; say so and ask.
 - **Incident, 2026-10-31:** Costume Party (constellation) kept its party rooms only in the API process's memory. A staging
   deploy during the party replaced the process; every phone rejoined an empty room and the music stopped.
 
