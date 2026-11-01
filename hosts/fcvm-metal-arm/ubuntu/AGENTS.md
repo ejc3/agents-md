@@ -444,9 +444,12 @@ a queue of edits, a cart, what is playing) lives in a durable store, never only 
 - **Durable means:** persisted server-side before acknowledging the change, and restored on process start or when the session
   is next touched. A per-session object store key, a database row or a Durable Object all qualify; a module-level map
   does not. Flush pending writes within the shutdown grace period, but do not rely on a shutdown signal for crash safety.
+  Authorize restores for the correct user or tenant, preserving existing retention and sensitive-data rules.
 - **Memory alone is only for** rebuildable caches and pending changes recoverable from a durable client outbox
   retained until the server acknowledges a durable write; label these in code. Unsent input without a retained copy
   is outside this guarantee.
+  Give each pending mutation a stable ID, reuse it on replay, and atomically commit server-side deduplication with
+  the state change so a lost acknowledgment cannot apply it twice.
 - **Proof:** every service holding such state has a restart test in CI: acknowledge a change, kill the process
   immediately without a shutdown signal, restart it, and verify all acknowledged state remains. Repeat with a shutdown
   signal. A missing restart test is a missing feature.
