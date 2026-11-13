@@ -42,6 +42,29 @@ not reachable from this box stays off it: deploys that need those run from the j
 box, so propose the change there or ask the owner. Only a public, ungated production launch needs
 the owner's go-ahead.
 
+## Done means a user saw it work, by the user's own path (owner, 2026-11-13)
+
+The owner, opening two new demo modes that had been reported working: every tile was blank. "It's kinda disappointing
+there were these major mistakes." Each had been checked only from places a user never stands: host-side health ("4 of
+4 up"), a test host missing the production certificate (so the listeners under test never opened), and a browser
+inside the same cloud network, which had IPv6. The user's network had IPv4 only. Three faults sat on the user's path
+and on no checked path: a firewall range that admitted only the older mode's ports, a container network with IPv6 off,
+and stream names published only on IPv6.
+
+- **A user-facing feature is done only when it works through the path a real user takes**: public DNS, the firewall,
+  the published port, the user's browser, from a network outside the cloud. Check an IPv4-only network and an IPv6
+  one separately. "Healthy", "socket opened" and "works from the dev box" are not it; require the real payload (a
+  frame, a page, a response) for every instance the feature shows.
+- **Make that check automatic, and fail closed.** A smoke run after every deploy covers every mode or route and every
+  instance, takes the expected set from the system's own state rather than a hardcoded list or port range, and fails
+  loudly when it cannot run. Prove it red on the broken state before trusting it green.
+- **A new listener or port changes three things at once**: the code, the firewall, and both address families. Change
+  and check them together; one declared port range that the firewall is derived from or tested against.
+- **Nothing blank.** A part of a page that cannot load says so (connecting, cannot reach, retry); an empty black box is
+  a defect.
+- **Report a finding with its fix, not instead of it.** An agent that sees the user's view broken fixes it in the same
+  task, or starts the fix, before reporting.
+
 ## Acknowledged user state survives a restart (owner, 2026-10-31)
 
 The owner, after a deploy wiped a live party: "we can never have stateless things that lose data". User state a service

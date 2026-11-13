@@ -435,6 +435,29 @@ Before creating or updating a PR:
 8. ✅ Note any breaking changes or migration steps
 9. ✅ Include test results if applicable
 
+## Done means a user saw it work, by the user's own path (owner, 2026-11-13)
+
+The owner, opening two new demo modes that had been reported working: every tile was blank. "It's kinda disappointing
+there were these major mistakes." Each had been checked only from places a user never stands: host-side health ("4 of
+4 up"), a test host missing the production certificate (so the listeners under test never opened), and a browser
+inside the same cloud network, which had IPv6. The user's network had IPv4 only. Three faults sat on the user's path
+and on no checked path: a firewall range that admitted only the older mode's ports, a container network with IPv6 off,
+and stream names published only on IPv6.
+
+- **A user-facing feature is done only when it works through the path a real user takes**: public DNS, the firewall,
+  the published port, the user's browser, from a network outside the cloud. Check an IPv4-only network and an IPv6
+  one separately. "Healthy", "socket opened" and "works from the dev box" are not it; require the real payload (a
+  frame, a page, a response) for every instance the feature shows.
+- **Make that check automatic, and fail closed.** A smoke run after every deploy covers every mode or route and every
+  instance, takes the expected set from the system's own state rather than a hardcoded list or port range, and fails
+  loudly when it cannot run. Prove it red on the broken state before trusting it green.
+- **A new listener or port changes three things at once**: the code, the firewall, and both address families. Change
+  and check them together; one declared port range that the firewall is derived from or tested against.
+- **Nothing blank.** A part of a page that cannot load says so (connecting, cannot reach, retry); an empty black box is
+  a defect.
+- **Report a finding with its fix, not instead of it.** An agent that sees the user's view broken fixes it in the same
+  task, or starts the fix, before reporting.
+
 ## Acknowledged user state survives a restart (owner, 2026-10-31)
 
 The owner, after a deploy wiped a live party: "we can never have stateless things that lose data". User state a service
@@ -676,6 +699,9 @@ this section wins: settle the stack as drafts and mark it ready once; never forc
   force-push ready PRs to fix a topology.
 - **No useless reviews or records.** One ready flip is the review round. Do not request a review of a rebase whose own
   patch is unchanged, and do not post a comment that only restates a clean result.
+- **Read the gate's verdict, then merge, as two steps.** Never chain `gh pr merge` after the gate script in one
+  command: the merge then runs whatever the verdict says. If the gate blocks a PR the description marks trivial, say so
+  on the PR and fix the gate, rather than merging past it.
 - **Watch, do not poll by hand.** Wait on a PR with the repository's watcher in the background (in dolphin-labs,
   `dolphin pr wait <N>`), which returns on any new review, comment, CI result or push. Never write a grep or jq polling
   loop over `gh` output: they break quietly. The watcher reports and the agent decides.
