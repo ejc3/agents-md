@@ -1031,14 +1031,6 @@ have prevented it. The registry is that.
 
 ---
 
-## Host: fcvm-metal-arm — rebooting this box (owner, 2026-11-13)
-
-"Whenever you need to, you can restart the host." Reboot it when a reboot is needed (a host kernel installed and
-selected through an `ejc3/aws` pull request, a wedged kernel state), without asking. Changing which kernel is installed
-still goes through `ejc3/aws`. A reboot ends every Claude session and background agent on the box: first let agents
-push their work and write resume notes, and keep jobs on the parallel boxes detached there (`nohup setsid`). After it,
-check `uname -r`.
-
 ## Host: fcvm-metal-arm — measure on the parallel boxes, never on this box
 
 This box is shared: other sessions and users run builds and tests on it, so any timing taken
