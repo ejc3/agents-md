@@ -2,6 +2,29 @@
 
 Session values stay out of the repository. A value copied from a working session (a shell, an environment variable, a launch command or a transcript) is not useful to the repository and goes stale: profile names, account names, one-off paths, model names, local ports. Don't put one in a file, a comment, a commit message, or a pull request title, description or review comment. Use a variable or a made-up placeholder (`example-profile`, `example-name`). Where something specific has to be named, use its publicly documented identifier. Check the diff, the commit messages and the PR text before every push.
 
+## Host: nextjs-dev — run heavy work on pbox; browser suites belong in CI
+
+**RAM comes first. Heavy memory or CPU work must run on a dedicated parallel box (`pbox`), not on this
+shared server.** CPU work can queue; a job that exhausts physical RAM forces reclaim, paging or an OOM kill
+and disrupts other accounts' dev servers and sessions. Swap and throttling are not substitutes for RAM.
+
+- Before starting a heavy job, use its measured peak resident working set from CI or pbox, including all of its
+  workers (not just one process), and leave headroom for the OS and variation. If the peak is unknown,
+  start with headroom and measure it on pbox. Choose the smallest flavor that fits the RAM requirement
+  first; size CPU and disk second.
+- Full monorepo builds or type checks, parallel test suites, browser workers, large renders, and batch
+  jobs go on pbox. Follow the owner's browser rule: prefer PR CI for the whole suite; for manual runs,
+  use pbox for CPU work and gbox only when rendering or performance measurements need a real GPU.
+  On this host run only light checks or the changed Playwright specs, a few at a time with `--repeat-each=3` for flakes.
+- From this dev account, use `pbox status` and `pbox flavors`, then choose a free slot or one owned by your
+  job. For example, `pbox up 3 memory-32`, then `pbox ssh 3 --instance ID` using the ID printed by `up`.
+  Connect directly through the configured pbox SSH path; do not route work through a jumpbox. Use a
+  separate checkout or directory under `/mnt/work` for your agent and task. Transfer needed inputs,
+  logs, and results using the ordinary Git or rsync path; do not copy admin credentials or keys.
+- Keep the usual cost and cleanup rules: quote costs before starting a box, stay with the ordinary Spot
+  and idle cleanup defaults, and run `pbox down N --instance ID` as soon as your results are copied out.
+  Leave other jobs' slots alone. Work volumes at fallback sites are disposable.
+
 ## Cheaper models for straightforward work
 
 Claude Code here can run three current models. Opus 5.5 is the default. Sonnet 5.5 and Haiku 5.5 are faster and
@@ -153,17 +176,6 @@ The full, current list, with what each is for, is in the public `ejc3/aws` repo:
 
 Use the `drive-mac` skill (Claude Code: `~/.claude/skills`; Codex: `~/.agents/skills`). How to reach the Mac is in
 `~/.claude/local.md`, never here.
-
-## Browser test suites run in CI, not on this box (owner, 2026-10-17)
-
-The owner's rule: "pbox or gpu locally, but prefer ci". This box has four shared cores and no GPU, so a
-WebGL game's browser tests run in software: one game's nine specs took about 75 minutes here.
-
-- **Run the full browser suite in the pull request's CI.** Push the branch and let CI run it.
-- **When CI cannot run**, use the CPU box (`pbox`), or the GPU box (`gbox`) for anything rendered or
-  timed. Say what it costs before starting one, and take it down afterwards.
-- **On this box, run only the specs a change touches**, a few at a time, with `--repeat-each=3` (Playwright needs
-  the count) to check for flakes. Never run the whole suite here.
 
 ## Reviewer Bots and the Merge Gate: a Time Budget, Not a Loop
 
