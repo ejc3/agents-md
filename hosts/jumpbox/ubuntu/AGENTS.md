@@ -8,6 +8,18 @@ This file contains general best practices and patterns to follow across all proj
 
 This is an ARM64 EC2 instance (t4g.large) in us-west-1 used as a jumpbox/management host.
 
+### Keep heavy work off the control plane
+
+**RAM comes first. Do not run CPU-heavy or memory-heavy workloads on this shared jumpbox.** CPU work
+can wait; when physical RAM runs out, paging and OOM kills can interrupt administration and other
+sessions. Size heavy jobs for the measured peak resident working set of the whole job, including
+parallel workers, plus headroom. Swap and throttling are not substitutes for physical RAM.
+
+Use project CI or run full builds, test suites, browser workers, renders, indexes, and benchmarks on a
+dedicated `pbox` from the already-authorized dev account's direct pbox SSH path. Keep this box for
+administration, including Terraform plans and applies under the existing run lock. Dev and workload
+boxes must never connect to this jumpbox; do not copy its AWS credentials or SSH keys to them.
+
 ### Quick Reference
 
 ```bash

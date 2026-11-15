@@ -2,6 +2,38 @@
 
 This file contains general best practices and patterns to follow across all projects.
 
+## Host: fcvm-metal-arm — run heavy work on pbox
+
+**RAM comes first. Heavy memory or CPU work must run on a dedicated parallel box (`pbox`), not on this shared
+host.** CPU work can queue; a job that exhausts physical RAM forces reclaim, paging or an OOM kill across
+other sessions. Swap and throttling do not provide the physical memory a job needs.
+
+- Before starting, size for the **measured peak resident working set of the whole job** (including parallel workers,
+  browsers, and compilers), with headroom for the OS and variation. Use a prior CI/pbox measurement, or
+  profile on pbox if the peak is unknown. Size CPU and disk second; choose the smallest `pbox flavors`
+  option that fits, using a memory flavor for RAM-bound work.
+- Offload full Rust or TypeScript builds and test suites, parallel browser runs, large renders, indexes,
+  and sustained benchmarks. Small checks and focused tests can run here; take every timing used in a
+  decision, record, or write-up on a dedicated pbox. Use project CI where it already runs the suite.
+- From this dev account, check `pbox status` and `pbox flavors`, then choose a free slot or one already
+  owned by your job. For example, `pbox up 3 memory-32`, then `pbox ssh 3 --instance ID` using the instance
+  ID that `up` printed. Connect directly using pbox's configured SSH path; do not route through a jumpbox.
+  Work in a separate checkout or directory under `/mnt/work` for your agent and task. Move only required
+  inputs and outputs by the usual Git or rsync path; never transfer admin credentials or keys.
+- Keep ordinary Spot and idle cleanup defaults. Use `kvm-96`/`kvm-192` only for `/dev/kvm`, and use a
+  storage flavor only when local NVMe is needed (`/mnt/nvme` is disposable).
+- In a Claude Code session the HTTPS proxy asks for a client certificate, which `pbox`'s AWS
+  calls (and git, gh) cannot give: they fail with certificate errors. Run them through a
+  local plain-HTTP forwarder on a kernel-assigned port, `socat TCP-LISTEN:$P,bind=127.0.0.1,fork
+  OPENSSL:<proxy host:port>,cafile=ca.pem,cert=client.pem,key=client.key,verify=1` with the
+  files in `~/.config/claude-master/`, then `HTTPS_PROXY=http://127.0.0.1:$P` and `NO_PROXY`
+  covering `169.254.169.254` and localhost. Kill the forwarder afterwards; never turn off
+  verification or bypass the proxy.
+- Start long jobs detached on the box (`nohup setsid ... &`), log there, and copy logs and results back
+  periodically. Run `pbox down N --instance ID` on the same instance as soon as work is copied back;
+  leave other jobs' slots alone. The home-AZ work volume stays; fallback storage is disposable.
+- Records keep the instance type, never the box's host name, IP or boot id.
+
 ## Project Layout
 
 - Main fcvm repository: `~/fcvm`
@@ -1030,30 +1062,6 @@ left alone and the tests moved by hand. Nothing said who had which port, so noth
 have prevented it. The registry is that.
 
 ---
-
-## Host: fcvm-metal-arm — measure on the parallel boxes, never on this box
-
-This box is shared: other sessions and users run builds and tests on it, so any timing taken
-here is noise. Compile and run tests here; take every number that goes into a record, a write-up
-or a decision on a dedicated parallel box (`pbox`), and throw away anything measured here.
-
-- `pbox status` first: eight slots (1-8), each its own instance and work volume. Use a slot that
-  is down or that your own job brought up; never take over a box another job is using.
-- `pbox up N FLAVOR` launches it (spot where it can); a flavor is required. Pick the smallest in
-  `pbox flavors` that fits the job's shape (compute, general, memory, or storage for local NVMe at
-  `/mnt/nvme`) and size (32 to 192 vCPU); `kvm-96`/`kvm-192` only for `/dev/kvm`. `pbox ip N`, `pbox ssh N`.
-- In a Claude Code session the HTTPS proxy asks for a client certificate, which `pbox`'s AWS
-  calls (and git, gh) cannot give: they fail with certificate errors. Run them through a
-  local plain-HTTP forwarder on a kernel-assigned port, `socat TCP-LISTEN:$P,bind=127.0.0.1,fork
-  OPENSSL:<proxy host:port>,cafile=ca.pem,cert=client.pem,key=client.key,verify=1` with the
-  files in `~/.config/claude-master/`, then `HTTPS_PROXY=http://127.0.0.1:$P` and `NO_PROXY`
-  covering `169.254.169.254` and localhost. Kill the forwarder afterwards; never turn off
-  verification or bypass the proxy.
-- Start the job detached on the box (`nohup setsid ... &`) so a dropped ssh does not kill it,
-  log to a file there, and copy logs and results back periodically with `rsync`.
-- A box bills by the hour: `pbox down N` as soon as the results are copied back (the work
-  volume is kept). Do not leave one idle between jobs.
-- Records keep the instance type, never the box's host name, IP or boot id.
 
 ## Skills and Tool Gotchas on This Box
 
