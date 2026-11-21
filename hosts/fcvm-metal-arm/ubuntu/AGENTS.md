@@ -34,6 +34,26 @@ other sessions. Swap and throttling do not provide the physical memory a job nee
   leave other jobs' slots alone. The home-AZ work volume stays; fallback storage is disposable.
 - Records keep the instance type, never the box's host name, IP or boot id.
 
+## Mac and iOS work on the physical Mac mini
+
+Use the already-running Mac mini by default for macOS builds, tests and scripts. From this dev
+account, `ssh mini` opens the physical host under its ordinary login. Use the MacBook (`ssh mac`)
+when the task needs something specific to the laptop, such as an attached device or the owner's
+interactive desktop. Give each task its own directory on the mini and keep the path this prints.
+
+```sh
+ssh mini 'umask 077; mkdir -p "$HOME/agent-work" && mktemp -d "$HOME/agent-work/task.XXXXXXXX"'
+```
+
+Use the existing SSH route from the dev box to transfer the exact source revision and any intended
+uncommitted edits. Keep keys and credentials on their original machine. Build in the new workspace
+with the host toolchain. For Xcode scheme builds, use `-derivedDataPath` with a `DerivedData`
+directory inside the workspace. Copy results back before cleaning up your own files.
+
+The CI VM and Steve's VM share the host's CPU and RAM. Check memory pressure and active builds
+before increasing parallelism. Signing and TestFlight releases follow the project's existing CI.
+Launching an EC2 `macpbox` requires the owner's explicit approval for its minimum 24-hour lease.
+
 ## Project Layout
 
 - Main fcvm repository: `~/fcvm`
