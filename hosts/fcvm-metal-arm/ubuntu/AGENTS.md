@@ -36,8 +36,8 @@ other sessions. Swap and throttling do not provide the physical memory a job nee
 
 ## Mac and iOS work on the physical Mac mini
 
-Use the already-running Mac mini by default for macOS builds, tests and scripts. From this dev
-account, `ssh mini` opens the physical host under its ordinary login. Use the MacBook (`ssh mac`)
+Use the already-running Mac mini by default for macOS command-line builds, scripts and tests
+its toolchain supports. From this dev account, `ssh mini` opens the physical host under its ordinary login. Use the MacBook (`ssh mac`)
 when the task needs something specific to the laptop, such as an attached device or the owner's
 interactive desktop. Give each task its own directory on the mini and keep the path this prints.
 
@@ -47,8 +47,10 @@ ssh mini 'umask 077; mkdir -p "$HOME/agent-work" && mktemp -d "$HOME/agent-work/
 
 Use the existing SSH route from the dev box to transfer the exact source revision and any intended
 uncommitted edits. Keep keys and credentials on their original machine. Build in the new workspace
-with the host toolchain. For Xcode scheme builds, use `-derivedDataPath` with a `DerivedData`
-directory inside the workspace. Copy results back before cleaning up your own files.
+with the host toolchain. Command Line Tools can build Swift packages. When full host Xcode is
+unavailable (including a pending license), use the existing Xcode CI workflow for iOS, simulator
+and Swift Testing (`@Test`) jobs. With working host Xcode, put `-derivedDataPath` inside your task directory.
+Copy results back before cleaning up your own files.
 
 The CI VM and Steve's VM share the host's CPU and RAM. Check memory pressure and active builds
 before increasing parallelism. Signing and TestFlight releases follow the project's existing CI.
