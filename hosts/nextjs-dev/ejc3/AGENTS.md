@@ -25,6 +25,29 @@ and disrupts other accounts' dev servers and sessions. Swap and throttling are n
   and idle cleanup defaults, and run `pbox down N --instance ID` as soon as your results are copied out.
   Leave other jobs' slots alone. Work volumes at fallback sites are disposable.
 
+## Mac and iOS work on the physical Mac mini
+
+Use the already-running Mac mini by default for macOS command-line builds, scripts and tests
+its toolchain supports. Find this account's SSH route in `~/.claude/local.md` and connect to the
+physical host under its ordinary login. Use the MacBook when the task requires its attached
+device or the owner's interactive desktop. Once on the mini, create a directory for this task
+and keep the printed path.
+
+```sh
+(umask 077; mkdir -p "$HOME/agent-work" && mktemp -d "$HOME/agent-work/task.XXXXXXXX")
+```
+
+Use the existing SSH route from the dev box to transfer the exact source revision and any intended
+uncommitted edits. Keep keys and credentials on their original machine. Build in the new workspace
+with the host toolchain. Command Line Tools can build Swift packages. When full host Xcode is
+unavailable (including a pending license), use the existing Xcode CI workflow for iOS, simulator
+and Swift Testing (`@Test`) jobs. With working host Xcode, put `-derivedDataPath` inside your task directory.
+Copy results back before cleaning up your own files.
+
+CI and other VMs share the host's CPU and RAM. Check memory pressure and active builds
+before increasing parallelism. Signing and TestFlight releases follow the project's existing CI.
+Launching an EC2 `macpbox` requires the owner's explicit approval for its minimum 24-hour lease.
+
 ## Cheaper models for straightforward work
 
 Claude Code here can run three current models. Opus 5.5 is the default. Sonnet 5.5 and Haiku 5.5 are faster and
