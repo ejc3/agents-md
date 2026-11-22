@@ -135,7 +135,9 @@ Lessons from `~/ts-api`. The goal is one codebase that runs unchanged on Vercel
 - Deploys run from CI on merge to main — a GitHub Action runs `wrangler deploy` with
   the token as a repo secret; Vercel's git integration builds on push. Not manual CLI.
 - Each change is a reviewed PR (mechanical gate → `/code-review` → `codex` → CI green)
-  before merge. Don't iterate by patching a live deployment.
+  before merge. While Codex cannot review at all (owner, 2026-11-22), a Claude Code subagent on
+  Fable at medium effort (`model: "fable"`, `effort: "medium"`) reviews the same diff in its place;
+  say so on the PR, with the range and the findings. Don't iterate by patching a live deployment.
 
 ### Drafts behind Cloudflare Access always ship (owner, 2026-10-12)
 

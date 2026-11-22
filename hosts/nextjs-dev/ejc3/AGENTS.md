@@ -246,6 +246,12 @@ jumpbox reviews and merges them, and security and correctness findings block.
   with a prompt naming the range (`git diff <last reviewed sha>..<head sha>`) and asking for a
   code review of exactly that diff. Then record on the PR the range, the command and the
   findings, before merging past the gate.
+- **While Codex cannot review at all** (owner, 2026-11-22: Codex "is out, so we can use fable w/ effort
+  medium as" a substitute): when neither the Codex GitHub reviewer nor `codex exec` can run, a Claude Code
+  subagent on Fable at medium effort (the Agent tool with `model: "fable"` and `effort: "medium"`) reviews the
+  same range in its place. Give it the diff range, not your conclusions. Record on the PR the range, that Fable at
+  medium effort stood in for Codex, and the findings, before merging past the gate. Check that Codex is still
+  unavailable before each use; once it answers again, it is the reviewer.
 - **Bot quirks:**
   - CodeRabbit allows about one review an hour per account, reviews incrementally, and
     re-edits its summary and old findings after later pushes. An edited finding needs a new
