@@ -1231,9 +1231,10 @@ command line, into a file in a repo or a commit; never print one.
   "$ID" "$SECRET" | curl -H @- https://<site>-stage.<subdomain>.workers.dev/`. In a browser test, add them only to
   requests for the staging host (Playwright `context.route`), never as `extraHTTPHeaders`, which reach every site the
   page opens. A staging page that redirects to the Access login is not "unreachable": open it with this token.
-  The headers go to the staging host only: never follow a redirect off it with them attached (no `curl -L`; in
-  the route handler check the host and do not add them to the redirect), and never record them (no Playwright
-  trace or HAR, no `curl -v`) while they are attached.
+  The headers go to the staging host only: never follow a redirect with them attached. With curl, no `-L`. In
+  Playwright, headers given to `route.continue` are re-sent on every redirect, off-host ones included, so fetch
+  inside the handler instead, `route.fulfill({ response: await route.fetch({ headers, maxRedirects: 0 }) })`, and
+  the page follows any redirect without them. Never record them (no Playwright trace or HAR, no `curl -v`).
 
 Not reachable from this box (administration only): production secrets, `workers-stage/*` (the staging
 Workers' own secrets, not the sites: those open with `workers-stage-agents/access`), `vercel-env/*`, the Workers
