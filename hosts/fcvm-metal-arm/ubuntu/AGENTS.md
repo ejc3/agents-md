@@ -1153,19 +1153,22 @@ Use the `drive-mac` skill (Claude Code: `~/.claude/skills`; Codex: `~/.agents/sk
   instance role, with no key (the managed `~/.zshrc` wraps it). `deepseek.r1-v1:0` is also
   allowed. Managed in ejc3/aws `dev-user-data.tf`.
 
-## Cheaper models for straightforward work
+## Cheaper models for everyday work
 
 Claude Code here can run three current models for everyday work. Opus 5.5 is the default. (Fable 5.2,
 `fable`, is available too, used here only as the Codex stand-in reviewer.) Sonnet 5.5 and Haiku 5.5 are faster and
 much cheaper (list price per million tokens, input/output: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 for
-prompts up to 100K tokens and $0.50/$2.50 above), so hand them the simple parts and keep Opus for the thinking.
+prompts up to 100K tokens and $0.50/$2.50 above). Sonnet is a capable model for most scoped engineering at half
+Opus's price, Haiku takes the mechanical parts, and Opus keeps the work listed under it.
 
 - **Haiku 5.5 (`haiku`)**: mechanical work that is easy to check. Finding and reading files and summarizing them,
   extraction and classification, renames, formatting, lookups, running a command and reporting what it printed, simple
   browser checks. Anthropic: "high-volume, latency-sensitive tasks such as classification, extraction, and routing".
-- **Sonnet 5.5 (`sonnet`)**: well-scoped everyday engineering. A bug whose cause is known, a contained change with a
-  clear done condition, tests for behaviour that already exists, docs. Anthropic: "the best combination of speed and
-  intelligence".
+- **Sonnet 5.5 (`sonnet`)**: a strong model, not a fallback (owner, 2026-11-22: be "stronger that sonnet is a good
+  model"). It does most everyday engineering well: features and fixes with a clear goal, refactors, a bug whose cause
+  is known or can be found by reading and running the code, tests, a review of a contained diff, docs. Reach for it
+  first for any scoped piece of work, and give it real work, not only the leftovers. Anthropic: "the best combination
+  of speed and intelligence".
 - **Opus 5.5 (stay on it)**: planning and design, debugging where the cause is unknown, security, anything touching
   shared infrastructure, money or credentials, reviewing other agents' work, and the final check before you say done.
 
