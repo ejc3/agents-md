@@ -106,7 +106,9 @@ and stream names published only on IPv6.
 - **A user-facing feature is done only when it works through the path a real user takes**: public DNS, the firewall,
   the published port, the user's browser, from a network outside the cloud. Check an IPv4-only network and an IPv6
   one separately. "Healthy", "socket opened" and "works from the dev box" are not it; require the real payload (a
-  frame, a page, a response) for every instance the feature shows.
+  frame, a page, a response) for every instance the feature shows. A staging site behind Cloudflare Access is opened
+  with the agents' service token (`workers-stage-agents/access`, "Credentials on this box"), never left unchecked at
+  its login page.
 - **Make that check automatic, and fail closed.** A smoke run after every deploy covers every mode or route and every
   instance, takes the expected set from the system's own state rather than a hardcoded list or port range, and fails
   loudly when it cannot run. Prove it red on the broken state before trusting it green.
@@ -194,9 +196,15 @@ command line, into a file in a repo or a commit; never print one.
 - **Claude Haiku 5.5 on Amazon Bedrock**: bedrock-runtime, region `us-west-2`, model `us.anthropic.claude-haiku-5-5`,
   credentials from the instance role. No other Bedrock model here.
 - **CloudWatch** (read): metrics, including the claude-master pool's (`ClaudeMaster` namespace).
+- **Staging Workers behind Cloudflare Access** (any `<site>-stage` Worker on `workers.dev`, to check a deploy on the
+  user's path): `workers-stage-agents/access` (us-west-1), a JSON service token (`client_id`, `client_secret`). Send
+  the headers on curl's stdin, never as arguments: `printf 'CF-Access-Client-Id: %s\nCF-Access-Client-Secret: %s\n'
+  "$ID" "$SECRET" | curl -H @- https://<site>-stage.<subdomain>.workers.dev/`. In a browser test, add them only to
+  requests for the staging host (Playwright `context.route`), never as `extraHTTPHeaders`, which reach every site the
+  page opens. A staging page that redirects to the Access login is not "unreachable": open it with this token.
 
-Not reachable from this box (administration only, or the metal boxes): production secrets, `workers-stage/*`,
-`vercel-env/*`, the Workers deploy token, `people/addresses`, Turso, dolphin-films. Ask the owner.
+Not reachable from this box (administration only, or the metal boxes): production secrets, `workers-stage/*` (the
+staging Workers' own secrets, not the sites: those open with the token above), `vercel-env/*`, the Workers deploy token, `people/addresses`, Turso, dolphin-films. Ask the owner.
 
 The full, current list, with what each is for, is in the public `ejc3/aws` repo:
 `curl -fsSL https://raw.githubusercontent.com/ejc3/aws/main/AGENTS.md | sed -n '/^### AI services on the dev boxes/,/^### Sites also deploying/p'`
