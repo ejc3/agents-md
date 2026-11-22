@@ -515,7 +515,9 @@ and stream names published only on IPv6.
 - **A user-facing feature is done only when it works through the path a real user takes**: public DNS, the firewall,
   the published port, the user's browser, from a network outside the cloud. Check an IPv4-only network and an IPv6
   one separately. "Healthy", "socket opened" and "works from the dev box" are not it; require the real payload (a
-  frame, a page, a response) for every instance the feature shows.
+  frame, a page, a response) for every instance the feature shows. A `<site>-stage` Worker on `workers.dev` is opened
+  with the agents' service token (`workers-stage-agents/access`, "Credentials on this box"), never left unchecked at
+  its login page.
 - **Make that check automatic, and fail closed.** A smoke run after every deploy covers every mode or route and every
   instance, takes the expected set from the system's own state rather than a hardcoded list or port range, and fails
   loudly when it cannot run. Prove it red on the broken state before trusting it green.
@@ -1223,7 +1225,19 @@ command line, into a file in a repo or a commit; never print one.
 - **claude-master's log** (read): log group `/claude-master/server` (moves, rate limits, upstream errors, label reloads),
   e.g. `aws logs filter-log-events --region us-west-1 --log-group-name /claude-master/server --filter-pattern '"routing summary"'`.
 
-Not reachable from this box (administration only): production secrets, `workers-stage/*`, `vercel-env/*`, the Workers
+- **Staging Workers behind Cloudflare Access** (any `<site>-stage` Worker on `workers.dev`, to check a deploy on the
+  user's path): `workers-stage-agents/access` (us-west-1), a JSON service token (`client_id`, `client_secret`). Send
+  the headers on curl's stdin, never as arguments: `printf 'CF-Access-Client-Id: %s\nCF-Access-Client-Secret: %s\n'
+  "$ID" "$SECRET" | curl -H @- https://<site>-stage.<subdomain>.workers.dev/`. In a browser test, add them only to
+  requests for the staging host (Playwright `context.route`), never as `extraHTTPHeaders`, which reach every site the
+  page opens. A staging page that redirects to the Access login is not "unreachable": open it with this token.
+  The headers go to the staging host only: never follow a redirect with them attached. With curl, no `-L`. In
+  Playwright, headers given to `route.continue` are re-sent on every redirect, off-host ones included, so fetch
+  inside the handler instead, `route.fulfill({ response: await route.fetch({ headers, maxRedirects: 0 }) })`, and
+  the page follows any redirect without them. Never record them (no Playwright trace or HAR, no `curl -v`).
+
+Not reachable from this box (administration only): production secrets, `workers-stage/*` (the staging
+Workers' own secrets, not the sites: those open with `workers-stage-agents/access`), `vercel-env/*`, the Workers
 deploy token, `people/addresses`, `claude-master/account-labels`. Ask the owner.
 
 The full, current list, with what each is for, is in the public `ejc3/aws` repo:
