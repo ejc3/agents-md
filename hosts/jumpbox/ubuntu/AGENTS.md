@@ -456,7 +456,8 @@ block attackers.
 
 **Scope:** repositories whose merge gate is a `pr-review-gate` skill. In `ejc3/aws` and
 `ejc3/agents-md` the PR watch (`/pr-watch`) and ejc3/aws's AGENTS.md govern instead: every
-reviewer is asked on the head, and security and correctness findings block.
+reviewer is asked on the head, and security and correctness findings block. The Codex stand-in bullet below
+applies there too: its recorded review stands in for the watch's Codex sign-off.
 
 - **Codex is the one required head reviewer.** CodeRabbit and Greptile findings are
   answered like any other, but do not wait on their reviews of each head.
@@ -484,7 +485,8 @@ reviewer is asked on the head, and security and correctness findings block.
   medium as" a substitute, and Opus at extra-high effort if Fable is out too), in every repository, `ejc3/aws` and `ejc3/agents-md` included. Confirm the outage
   once, not per PR: a `codex exec` that fails with Codex's usage-limit message (it names when the limit resets), and an
   `@codex review` that gets no review or 👍 within 30 minutes. Keep that record on one PR or issue and link it from
-  each PR it covers; it holds until the reset time it names. Then a Claude Code subagent on Fable at medium effort
+  each PR it covers; it holds until the reset time it names or for 24 hours, whichever comes first. A failure
+  that names no reset (auth, network) is not an outage record. Then a Claude Code subagent on Fable at medium effort
   (the Agent tool with `model: "fable"` and `effort: "medium"`) reviews the same range in Codex's place, whatever the
   session's own model; if Fable cannot run, Opus at extra-high effort (`model: "opus"`, `effort: "xhigh"`).
   Give it the diff range, not your conclusions. On the PR, record the range, which model and effort stood in for

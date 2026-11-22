@@ -431,7 +431,8 @@ jumpbox reviews and merges them, and security and correctness findings block.
   PR watch reviews and merges). Confirm the outage
   once, not per PR: a `codex exec` that fails with Codex's usage-limit message (it names when the limit resets), and an
   `@codex review` that gets no review or 👍 within 30 minutes. Keep that record on one PR or issue and link it from
-  each PR it covers; it holds until the reset time it names. Then a Claude Code subagent on Fable at medium effort
+  each PR it covers; it holds until the reset time it names or for 24 hours, whichever comes first. A failure
+  that names no reset (auth, network) is not an outage record. Then a Claude Code subagent on Fable at medium effort
   (the Agent tool with `model: "fable"` and `effort: "medium"`) reviews the same range in Codex's place, whatever the
   session's own model; if Fable cannot run, Opus at extra-high effort (`model: "opus"`, `effort: "xhigh"`). This is the one exception to "delegate down, never up" (under "Cheaper models").
   Give it the diff range, not your conclusions. On the PR, record the range, which model and effort stood in for
@@ -1166,7 +1167,7 @@ Opus's price, Haiku takes the mechanical parts, and Opus keeps the work listed u
   browser checks. Anthropic: "high-volume, latency-sensitive tasks such as classification, extraction, and routing".
 - **Sonnet 5.5 (`sonnet`)**: a strong model, not a fallback (owner, 2026-11-22: be "stronger that sonnet is a good
   model"). It does most everyday engineering well: features and fixes with a clear goal, refactors, a bug whose cause
-  is known or can be found by reading and running the code, tests, a review of a contained diff, docs. Reach for it
+  is known or can be found by reading and running the code, tests, a first-pass review of a contained diff (not other agents' work, which stays with Opus), docs. Reach for it
   first for any scoped piece of work, and give it real work, not only the leftovers. Anthropic: "the best combination
   of speed and intelligence".
 - **Opus 5.5 (stay on it)**: planning and design, debugging where the cause is unknown, security, anything touching
