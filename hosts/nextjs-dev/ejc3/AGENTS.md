@@ -48,18 +48,22 @@ CI and other VMs share the host's CPU and RAM. Check memory pressure and active 
 before increasing parallelism. Signing and TestFlight releases follow the project's existing CI.
 Launching an EC2 `macpbox` requires the owner's explicit approval for its minimum 24-hour lease.
 
-## Cheaper models for straightforward work
+## Cheaper models for everyday work
 
-Claude Code here can run three current models. Opus 5.5 is the default. Sonnet 5.5 and Haiku 5.5 are faster and
+Claude Code here can run three current models for everyday work. Opus 5.5 is the default. (Fable 5.2,
+`fable`, is available too, used here only as the Codex stand-in reviewer.) Sonnet 5.5 and Haiku 5.5 are faster and
 much cheaper (list price per million tokens, input/output: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 for
-prompts up to 100K tokens and $0.50/$2.50 above), so hand them the simple parts and keep Opus for the thinking.
+prompts up to 100K tokens and $0.50/$2.50 above). Sonnet is a capable model for most scoped engineering at half
+Opus's price, Haiku takes the mechanical parts, and Opus keeps the work listed under it.
 
 - **Haiku 5.5 (`haiku`)**: mechanical work that is easy to check. Finding and reading files and summarizing them,
   extraction and classification, renames, formatting, lookups, running a command and reporting what it printed, simple
   browser checks. Anthropic: "high-volume, latency-sensitive tasks such as classification, extraction, and routing".
-- **Sonnet 5.5 (`sonnet`)**: well-scoped everyday engineering. A bug whose cause is known, a contained change with a
-  clear done condition, tests for behaviour that already exists, docs. Anthropic: "the best combination of speed and
-  intelligence".
+- **Sonnet 5.5 (`sonnet`)**: a strong model, not a fallback (owner, 2026-11-22: be "stronger that sonnet is a good
+  model"). It does most everyday engineering well: features and fixes with a clear goal, refactors, a bug whose cause
+  is known or can be found by reading and running the code, tests, a first-pass review of a contained diff (not other agents' work, which stays with Opus), docs. Reach for it
+  first for any scoped piece of work, and give it real work, not only the leftovers. Anthropic: "the best combination
+  of speed and intelligence".
 - **Opus 5.5 (stay on it)**: planning and design, debugging where the cause is unknown, security, anything touching
   shared infrastructure, money or credentials, reviewing other agents' work, and the final check before you say done.
 
@@ -71,6 +75,8 @@ How to use them:
 - Delegate down, never up. A subagent runs on the session's own model or a cheaper one: Haiku from a Sonnet session,
   Haiku or Sonnet from an Opus session. A Sonnet session never starts an Opus subagent; if the work needs Opus, the
   session itself goes back to Opus (`/model opus`) first.
+  One exception: the Codex stand-in review under "Reviewer Bots and the Merge Gate" runs on Fable (or Opus at
+  extra-high effort) whatever the session's own model.
 - A subagent starts with no context: give it the goal, the files, the constraints and what "done" looks like.
 - One task per subagent. Check what it did yourself (run the tests, read the diff) before relying on it.
 - If a subagent gets it wrong once, do that piece in the main session instead; do not retry the same model.
@@ -246,6 +252,18 @@ jumpbox reviews and merges them, and security and correctness findings block.
   with a prompt naming the range (`git diff <last reviewed sha>..<head sha>`) and asking for a
   code review of exactly that diff. Then record on the PR the range, the command and the
   findings, before merging past the gate.
+- **While Codex cannot review at all** (owner, 2026-11-22: Codex "is out, so we can use fable w/ effort
+  medium as" a substitute, and Opus at extra-high effort if Fable is out too), in the repositories this box merges (in `ejc3/aws` and `ejc3/agents-md` the jumpbox's
+  PR watch reviews and merges). Confirm the outage
+  once, not per PR: a `codex exec` that fails with Codex's usage-limit message (it names when the limit resets), and an
+  `@codex review` that gets no review or 👍 within 30 minutes. Keep that record on one PR or issue and link it from
+  each PR it covers; it holds until the reset time it names or for 24 hours, whichever comes first. A failure
+  that names no reset (auth, network) is not an outage record. Then a Claude Code subagent on Fable at medium effort
+  (the Agent tool with `model: "fable"` and `effort: "medium"`) reviews the same range in Codex's place, whatever the
+  session's own model; if Fable cannot run, Opus at extra-high effort (`model: "opus"`, `effort: "xhigh"`). This is the one exception to "delegate down, never up" (under "Cheaper models").
+  Give it the diff range, not your conclusions. On the PR, record the range, which model and effort stood in for
+  Codex, and each finding, fixed or answered with a disposition as a review thread would be, before merging past
+  the gate. Once Codex answers again, it is the reviewer.
 - **Bot quirks:**
   - CodeRabbit allows about one review an hour per account, reviews incrementally, and
     re-edits its summary and old findings after later pushes. An edited finding needs a new
@@ -263,7 +281,8 @@ Just that there is no unresolved threads ... guard against no review on new comm
 - **What merging requires.** Every review thread resolved (GitHub's "require conversation resolution", set in the
   repository's ruleset) and a review of the head commit. Opening an answer with `RED-VERIFIED:`, `NOT-A-DEFECT:` or
   `DISAGREE:` is encouraged, because it records the decision, but resolving the thread is what counts.
-- **A reviewed head.** A Codex review or a Codex 👍 after the latest push covers the head, as does an earlier review
+- **A reviewed head.** A Codex review or a Codex 👍 after the latest push covers the head (while Codex cannot review
+  at all, so does the recorded stand-in review of it, under "Reviewer Bots and the Merge Gate"), as does an earlier review
   when a rebase left the PR's own change identical. Otherwise ask for one (`@codex review`), or mark the PR trivial with
   one line in its description, `Codex: skipped — <reason>`. Marking a PR trivial is the agent's call.
 - **Settle while draft, then flip once.** A ready PR runs CI on every push and every flip. While it is a draft: link a
