@@ -515,7 +515,7 @@ and stream names published only on IPv6.
 - **A user-facing feature is done only when it works through the path a real user takes**: public DNS, the firewall,
   the published port, the user's browser, from a network outside the cloud. Check an IPv4-only network and an IPv6
   one separately. "Healthy", "socket opened" and "works from the dev box" are not it; require the real payload (a
-  frame, a page, a response) for every instance the feature shows. A staging site behind Cloudflare Access is opened
+  frame, a page, a response) for every instance the feature shows. A `<site>-stage` Worker on `workers.dev` is opened
   with the agents' service token (`workers-stage-agents/access`, "Credentials on this box"), never left unchecked at
   its login page.
 - **Make that check automatic, and fail closed.** A smoke run after every deploy covers every mode or route and every
@@ -1231,6 +1231,9 @@ command line, into a file in a repo or a commit; never print one.
   "$ID" "$SECRET" | curl -H @- https://<site>-stage.<subdomain>.workers.dev/`. In a browser test, add them only to
   requests for the staging host (Playwright `context.route`), never as `extraHTTPHeaders`, which reach every site the
   page opens. A staging page that redirects to the Access login is not "unreachable": open it with this token.
+  The headers go to the staging host only: never follow a redirect off it with them attached (no `curl -L`; in
+  the route handler check the host and do not add them to the redirect), and never record them (no Playwright
+  trace or HAR, no `curl -v`) while they are attached.
 
 Not reachable from this box (administration only): production secrets, `workers-stage/*` (the staging
 Workers' own secrets, not the sites: those open with `workers-stage-agents/access`), `vercel-env/*`, the Workers
