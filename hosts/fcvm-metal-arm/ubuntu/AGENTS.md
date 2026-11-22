@@ -135,7 +135,7 @@ Lessons from `~/ts-api`. The goal is one codebase that runs unchanged on Vercel
 - Deploys run from CI on merge to main — a GitHub Action runs `wrangler deploy` with
   the token as a repo secret; Vercel's git integration builds on push. Not manual CLI.
 - Each change is a reviewed PR (mechanical gate → `/code-review` → `codex` → CI green)
-  before merge. While Codex cannot review at all, the Fable stand-in under "Reviewer Bots and the
+  before merge. While Codex cannot review at all, the stand-in under "Reviewer Bots and the
   Merge Gate" takes its place. Don't iterate by patching a live deployment.
 
 ### Drafts behind Cloudflare Access always ship (owner, 2026-10-12)
@@ -427,13 +427,16 @@ jumpbox reviews and merges them, and security and correctness findings block.
   code review of exactly that diff. Then record on the PR the range, the command and the
   findings, before merging past the gate.
 - **While Codex cannot review at all** (owner, 2026-11-22: Codex "is out, so we can use fable w/ effort
-  medium as" a substitute), in every repository including `ejc3/aws` and `ejc3/agents-md`: first confirm it, with one
-  `@codex review` comment that gets no review and one `codex exec` attempt that fails, and quote both failures in the
-  PR record. Then a Claude Code subagent on Fable at medium effort (the Agent tool with `model: "fable"` and
-  `effort: "medium"`) reviews the same range in Codex's place, whatever the session's own model: this is the one
-  exception to "delegate down, never up". Give it the diff range, not your conclusions. Record on the PR the range,
-  that Fable at medium effort stood in for Codex, and the findings, before merging past the gate. Once Codex answers
-  again, it is the reviewer.
+  medium as" a substitute, and Opus at extra-high effort if Fable is out too), in the repositories this box merges (in `ejc3/aws` and `ejc3/agents-md` the jumpbox's
+  PR watch reviews and merges). Confirm the outage
+  once, not per PR: a `codex exec` that fails with Codex's usage-limit message (it names when the limit resets), and an
+  `@codex review` that gets no review or 👍 within 30 minutes. Keep that record on one PR or issue and link it from
+  each PR it covers; it holds until the reset time it names. Then a Claude Code subagent on Fable at medium effort
+  (the Agent tool with `model: "fable"` and `effort: "medium"`) reviews the same range in Codex's place, whatever the
+  session's own model; if Fable cannot run, Opus at extra-high effort (`model: "opus"`, `effort: "xhigh"`). This is the one exception to "delegate down, never up" (under "Cheaper models").
+  Give it the diff range, not your conclusions. On the PR, record the range, which model and effort stood in for
+  Codex, and each finding, fixed or answered with a disposition as a review thread would be, before merging past
+  the gate. Once Codex answers again, it is the reviewer.
 - **Bot quirks:**
   - CodeRabbit allows about one review an hour per account, reviews incrementally, and
     re-edits its summary and old findings after later pushes. An edited finding needs a new
@@ -571,7 +574,7 @@ a queue of edits, a cart, what is playing) lives in a durable store, never only 
 Some of the model ids I run are private. A model id read from my environment or session (`ANTHROPIC_MODEL`, `/model`,
 a launch command), and shortened or altered forms of one, must **never** appear in anything public: a public
 repository, a pull request or issue (title, body, comments), a commit message, a test fixture, an example in a README,
-a release note, a gist. Only the public model names (Opus, Sonnet, Haiku and their published ids) may be written
+a release note, a gist. Only the public model names (Opus, Sonnet, Haiku, Fable and their published ids) may be written
 there. Private files and private documents are fine.
 
 The same holds for any other value read from my environment or session: profile names, host names, account names. A
@@ -755,7 +758,7 @@ this section wins: settle the stack as drafts and mark it ready once; never forc
   repository's ruleset) and a review of the head commit. Opening an answer with `RED-VERIFIED:`, `NOT-A-DEFECT:` or
   `DISAGREE:` is encouraged, because it records the decision, but resolving the thread is what counts.
 - **A reviewed head.** A Codex review or a Codex 👍 after the latest push covers the head (while Codex cannot review
-  at all, so does the recorded Fable stand-in review of it, under "Reviewer Bots and the Merge Gate"), as does an earlier review
+  at all, so does the recorded stand-in review of it, under "Reviewer Bots and the Merge Gate"), as does an earlier review
   when a rebase left the PR's own change identical. Otherwise ask for one (`@codex review`), or mark the PR trivial with
   one line in its description, `Codex: skipped — <reason>`. Marking a PR trivial is the agent's call.
 - **Settle while draft, then flip once.** A ready PR runs CI on every push and every flip. While it is a draft: link a
@@ -1152,7 +1155,8 @@ Use the `drive-mac` skill (Claude Code: `~/.claude/skills`; Codex: `~/.agents/sk
 
 ## Cheaper models for straightforward work
 
-Claude Code here can run three current models. Opus 5.5 is the default. Sonnet 5.5 and Haiku 5.5 are faster and
+Claude Code here can run three current models for everyday work. Opus 5.5 is the default. (Fable 5.2,
+`fable`, is available too, used here only as the Codex stand-in reviewer.) Sonnet 5.5 and Haiku 5.5 are faster and
 much cheaper (list price per million tokens, input/output: Opus 5.5 $4/$20, Sonnet 5.5 $2/$10, Haiku 5.5 $0.10/$0.50 for
 prompts up to 100K tokens and $0.50/$2.50 above), so hand them the simple parts and keep Opus for the thinking.
 
@@ -1173,6 +1177,8 @@ How to use them:
 - Delegate down, never up. A subagent runs on the session's own model or a cheaper one: Haiku from a Sonnet session,
   Haiku or Sonnet from an Opus session. A Sonnet session never starts an Opus subagent; if the work needs Opus, the
   session itself goes back to Opus (`/model opus`) first.
+  One exception: the Codex stand-in review under "Reviewer Bots and the Merge Gate" runs on Fable (or Opus at
+  extra-high effort) whatever the session's own model.
 - A subagent starts with no context: give it the goal, the files, the constraints and what "done" looks like.
 - One task per subagent. Check what it did yourself (run the tests, read the diff) before relying on it.
 - If a subagent gets it wrong once, do that piece in the main session instead; do not retry the same model.

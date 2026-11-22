@@ -481,13 +481,15 @@ reviewer is asked on the head, and security and correctness findings block.
   code review of exactly that diff. Then record on the PR the range, the command and the
   findings, before merging past the gate.
 - **While Codex cannot review at all** (owner, 2026-11-22: Codex "is out, so we can use fable w/ effort
-  medium as" a substitute), in every repository including `ejc3/aws` and `ejc3/agents-md`: first confirm it, with one
-  `@codex review` comment that gets no review and one `codex exec` attempt that fails, and quote both failures in the
-  PR record. Then a Claude Code subagent on Fable at medium effort (the Agent tool with `model: "fable"` and
-  `effort: "medium"`) reviews the same range in Codex's place, whatever the session's own model: this is the one
-  exception to "delegate down, never up". Give it the diff range, not your conclusions. Record on the PR the range,
-  that Fable at medium effort stood in for Codex, and the findings, before merging past the gate. Once Codex answers
-  again, it is the reviewer.
+  medium as" a substitute, and Opus at extra-high effort if Fable is out too), in every repository, `ejc3/aws` and `ejc3/agents-md` included. Confirm the outage
+  once, not per PR: a `codex exec` that fails with Codex's usage-limit message (it names when the limit resets), and an
+  `@codex review` that gets no review or 👍 within 30 minutes. Keep that record on one PR or issue and link it from
+  each PR it covers; it holds until the reset time it names. Then a Claude Code subagent on Fable at medium effort
+  (the Agent tool with `model: "fable"` and `effort: "medium"`) reviews the same range in Codex's place, whatever the
+  session's own model; if Fable cannot run, Opus at extra-high effort (`model: "opus"`, `effort: "xhigh"`).
+  Give it the diff range, not your conclusions. On the PR, record the range, which model and effort stood in for
+  Codex, and each finding, fixed or answered with a disposition as a review thread would be, before merging past
+  the gate. Once Codex answers again, it is the reviewer.
 - **Bot quirks:**
   - CodeRabbit allows about one review an hour per account, reviews incrementally, and
     re-edits its summary and old findings after later pushes. An edited finding needs a new
@@ -509,7 +511,7 @@ this section wins: settle the stack as drafts and mark it ready once; never forc
   repository's ruleset) and a review of the head commit. Opening an answer with `RED-VERIFIED:`, `NOT-A-DEFECT:` or
   `DISAGREE:` is encouraged, because it records the decision, but resolving the thread is what counts.
 - **A reviewed head.** A Codex review or a Codex 👍 after the latest push covers the head (while Codex cannot review
-  at all, so does the recorded Fable stand-in review of it, under "Reviewer Bots and the Merge Gate"), as does an earlier review
+  at all, so does the recorded stand-in review of it, under "Reviewer Bots and the Merge Gate"), as does an earlier review
   when a rebase left the PR's own change identical. Otherwise ask for one (`@codex review`), or mark the PR trivial with
   one line in its description, `Codex: skipped — <reason>`. Marking a PR trivial is the agent's call.
 - **Settle while draft, then flip once.** A ready PR runs CI on every push and every flip. While it is a draft: link a
