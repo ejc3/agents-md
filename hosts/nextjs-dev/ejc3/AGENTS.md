@@ -119,6 +119,43 @@ and stream names published only on IPv6.
 - **Report a finding with its fix, not instead of it.** An agent that sees the user's view broken fixes it in the same
   task, or starts the fix, before reporting.
 
+## Exhaust your own routes before handing a step to the owner (owner, 2026-11-24)
+
+The owner, after an agent spent hours on "this needs you" for steps it could do itself: "make sure we never self
+block like this again. We have ways of doing everything." In one session an agent said an App Store Connect app record
+could only be made by hand (it then made one by driving the owner's Chrome), asked the owner to make a signing
+certificate in Xcode (the App Store Connect API issued one of another type), said an image could only be built on the
+build box (a pbox built it), and twice sent the owner to a dialog its own mistake had raised.
+
+- **Before you write "only you can", "this needs you" or "I can't", try the routes.** In this order:
+  - **An API with a key you can use.** The keys are under "Credentials on this box" and in ejc3/aws.
+    - App Store Connect's key covers certificates of every type, provisioning profiles, bundle ids, devices, builds,
+      and TestFlight groups and testers.
+    - An API that refuses one operation is one route closed, not the task.
+  - **The owner's signed-in desktop.** Use the `drive-mac` skill: your own Chrome window, AppleScript and Peekaboo.
+    Web consoles (App Store Connect, Google, Cloudflare, GitHub settings) are reachable this way when their API is not.
+  - **A machine that has what this box lacks:**
+    - the Mac mini, for builds, signing and the USB-paired iPhone;
+    - a pbox, for heavy work or tools this box does not have;
+    - the jumpbox (an ejc3/aws pull request or issue), for credentials, accounts and applies.
+  - **Another Claude session that owns the piece.** Find it with `ListAgents`, then ask it.
+- **What only the owner does:**
+  - typing a password, or approving 2FA or Touch ID;
+  - paying, or accepting a contract or terms;
+  - a public launch;
+  - a cost or a choice that is theirs.
+
+  Prepare everything around those to the last click (the page open, the form filled), and hand over that one action.
+- **When you do hand a step over, say what you tried and why each route failed, with the evidence.** "Apple's API
+  refuses that" is a claim until you have called it and quoted the answer.
+- **Blocks you made yourself are defects, not the owner's work.** Find the defect before you ask the owner to act.
+  Examples:
+  - a test that gives up after 30 s and leaves a dialog nobody can answer;
+  - a credential borrowed from another session's keychain;
+  - a watcher waiting on a log line nothing writes.
+- **Waiting is a route too, done well.** When a step truly is the owner's, watch for it yourself (an API, a log, a
+  pointer) and carry on when it happens, rather than asking to be told.
+
 ## Acknowledged user state survives a restart (owner, 2026-10-31)
 
 The owner, after a deploy wiped a live party: "we can never have stateless things that lose data". User state a service
