@@ -57,6 +57,32 @@ inactivity timeout and a hard timeout (`runcloud ios create --inactivity-timeout
 when done (`runcloud ios delete <id>`), and never touch a session you did not start (`runcloud ios list` shows the
 account's). Build the app on a Mac or with `runcloud xcode build` (simulator, unsigned), never sign or ship from it.
 
+### Real iPhones on the Macs (owner, 2026-11-24)
+
+Both Macs have iPhones on USB, in Developer Mode, signed in to the owner's account, with TestFlight:
+the Mac mini (an iPhone 14 Pro Max and an iPhone 12) and the MacBook Pro (an iPhone 13). A check that
+needs a real device (a universal link tapped, a sign-in sheet, push, the camera) is yours to run on
+them. Never hand the owner a step an attached phone can do. Each Mac's `~/AGENTS.md` lists what is
+attached now and how to build, sign and test there (ejc3/aws `scripts/mac-setup.sh`); read it first.
+The `drive-mac` skill has the details.
+
+Limits on those phones: act only in the app under test, TestFlight and the system prompts they raise.
+Never a purchase, a payment or Apple Account sheet, a setting outside the app's own, or anything in the
+owner's other apps. A Face ID, Touch ID, passcode or Apple Account password prompt is the owner's: say so
+once and stop.
+
+- `xcrun devicectl device info apps` does not list App Store or TestFlight apps, not even with
+  `--include-all-apps`: an app missing from it proves nothing. Install the project's TestFlight build
+  through TestFlight first; build and sign a development build only when TestFlight lacks the change.
+- A UI test opens a link in the app with `XCUIApplication(bundleIdentifier:).open(url)`;
+  `XCUIDevice.shared.system.open(url)` sends an `https` URL to the browser, never through universal links.
+  `XCUIApplication.open` tests the app's own link routing, not whether iOS hands the domain to the app: that
+  rests on the signed entitlement and Apple's CDN copy of the association file, and a real tap needs the link
+  in another app. A sleeping phone with no passcode asked for (`devicectl device info lockState`) wakes with a home press and a
+  swipe up in the test; only a phone that wants its passcode needs the owner: say so once and stop.
+- Incident, 2026-11-24: an agent concluded from `devicectl` that the mini's phone had neither the app nor
+  TestFlight, and asked the owner to install a build and tap an invite by hand.
+
 ## Cheaper models for everyday work
 
 Claude Code here can run three current models for everyday work. Opus 5.5 is the default. (Fable 5.2,
