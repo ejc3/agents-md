@@ -537,20 +537,30 @@ certificate in Xcode (the App Store Connect API issued one of another type), sai
 build box (a pbox built it), and twice sent the owner to a dialog its own mistake had raised.
 
 - **Before you write "only you can", "this needs you" or "I can't", try the routes.** In this order:
-  - **An API with a key you can use.** The keys are under "Credentials on this box" and in ejc3/aws.
+  - **An API with a key granted to this box.** The keys are under "Credentials on this box".
     - App Store Connect's key covers certificates of every type, provisioning profiles, bundle ids, devices, builds,
-      and TestFlight groups and testers.
-    - An API that refuses one operation is one route closed, not the task.
+      and TestFlight groups and testers. Create with it; never revoke or delete a certificate, profile, key or device
+      that something else may sign with.
+    - An API that cannot do an operation for anyone is one route closed, not the task.
+    - A refusal because YOU lack the permission (IAM AccessDenied, a scoped token's 403, Cloudflare Access, a
+      ruleset or branch rule) is a boundary working, not a block. Propose the grant in ejc3/aws. Never route around
+      it through another credential, the owner's browser, another box or another session.
   - **The owner's signed-in desktop.** Use the `drive-mac` skill: your own Chrome window, AppleScript and Peekaboo.
-    Web consoles (App Store Connect, Google, Cloudflare, GitHub settings) are reachable this way when their API is not.
+    It is for consoles whose API cannot do the step (an App Store Connect app record, a Google console setting) in
+    a setup the owner asked for. Not for what Terraform owns (Cloudflare, AWS), access, tokens, keys or members,
+    or GitHub merges, rulesets and review gates: those go to ejc3/aws as a pull request or issue.
   - **A machine that has what this box lacks:**
     - the Mac mini, for builds, signing and the USB-paired iPhone;
     - a pbox, for heavy work or tools this box does not have;
     - the jumpbox (an ejc3/aws pull request or issue), for credentials, accounts and applies.
-  - **Another Claude session that owns the piece.** Find it with `ListAgents`, then ask it.
+  - **Another Claude session on this box that owns the piece.** Find it with `ListAgents`, then ask it. Never a
+    session on a jumpbox: nothing on a dev box contacts a jumpbox.
 - **What only the owner does:**
   - typing a password, or approving 2FA or Touch ID;
   - paying, or accepting a contract or terms;
+  - granting access, changing permissions, minting or revoking a credential, or approving an app authorization
+    (OAuth consent, a GitHub App install);
+  - restarting or rebooting a shared machine or app (the Mac, its Chrome, a dev box);
   - a public launch;
   - a cost or a choice that is theirs.
 
@@ -560,10 +570,11 @@ build box (a pbox built it), and twice sent the owner to a dialog its own mistak
 - **Blocks you made yourself are defects, not the owner's work.** Find the defect before you ask the owner to act.
   Examples:
   - a test that gives up after 30 s and leaves a dialog nobody can answer;
-  - a credential borrowed from another session's keychain;
+  - a credential borrowed from another session's keychain (a credential issued to another user or session is never
+    a route);
   - a watcher waiting on a log line nothing writes.
-- **Waiting is a route too, done well.** When a step truly is the owner's, watch for it yourself (an API, a log, a
-  pointer) and carry on when it happens, rather than asking to be told.
+- **Waiting is a route too, done well.** When a step truly is the owner's, watch for it yourself with a watcher or
+  `Monitor` (never a hand-written polling loop) and carry on when it happens, rather than asking to be told.
 
 ## Acknowledged user state survives a restart (owner, 2026-10-31)
 
