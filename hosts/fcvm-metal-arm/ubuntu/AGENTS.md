@@ -57,6 +57,24 @@ CI and other VMs share the host's CPU and RAM. Check memory pressure and active 
 before increasing parallelism. Signing and TestFlight releases follow the project's existing CI.
 Launching an EC2 `macpbox` requires the owner's explicit approval for its minimum 24-hour lease.
 
+### Real iPhones on the Macs (owner, 2026-11-24)
+
+Both Macs have iPhones on USB, in Developer Mode, signed in to the owner's account, with TestFlight:
+the Mac mini (an iPhone 14 Pro Max and an iPhone 12) and the MacBook Pro (an iPhone 13). A check that
+needs a real device (a universal link tapped, a sign-in sheet, push, the camera) is yours to run on
+them. Never hand the owner a step an attached phone can do. Each Mac's `~/AGENTS.md` lists what is
+attached now and how to build, sign and test there (ejc3/aws `scripts/mac-setup.sh`); read it first.
+The `drive-mac` skill has the details.
+
+- `xcrun devicectl device info apps` does not list App Store or TestFlight apps, not even with
+  `--include-all-apps`: an app missing from it proves nothing. Install the project's TestFlight build
+  through TestFlight first; build and sign a development build only when TestFlight lacks the change.
+- A UI test taps a link as a person would (`XCUIDevice.shared.system.open(url)`). A sleeping phone with no
+  passcode asked for (`devicectl device info lockState`) wakes with a home press and a swipe up in the test;
+  only a phone that wants its passcode needs the owner.
+- Incident, 2026-11-24: an agent concluded from `devicectl` that the mini's phone had neither the app nor
+  TestFlight, and asked the owner to install a build and tap an invite by hand.
+
 ## Project Layout
 
 - Main fcvm repository: `~/fcvm`
