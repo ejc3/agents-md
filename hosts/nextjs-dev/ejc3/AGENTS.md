@@ -48,6 +48,15 @@ CI and other VMs share the host's CPU and RAM. Check memory pressure and active 
 before increasing parallelism. Signing and TestFlight releases follow the project's existing CI.
 Launching an EC2 `macpbox` requires the owner's explicit approval for its minimum 24-hour lease.
 
+**When every simulator is busy, use run.cloud** (owner, 2026-11-24). If the mini's and the MacBook's build slots
+(`mac-build --status`) are all taken and the job needs an iOS Simulator, start one on run.cloud instead of waiting:
+cloud iOS simulators that take a simulator build (`.app`, `.zip`, `.tar.gz`), with tap, type, screenshot, pasteboard,
+open-URL and accessibility-tree calls, from the `runcloud` CLI or `@run-cloud/sdk`. The key is `run-cloud/api-key`
+("Credentials on this box"). It is billed per active simulator minute against a small balance: give every session an
+inactivity timeout and a hard timeout (`runcloud ios create --inactivity-timeout 2m --hard-timeout 30m`), delete it
+when done (`runcloud ios delete <id>`), and never touch a session you did not start (`runcloud ios list` shows the
+account's). Build the app on a Mac or with `runcloud xcode build` (simulator, unsigned), never sign or ship from it.
+
 ### Real iPhones on the Macs (owner, 2026-11-24)
 
 Both Macs have iPhones on USB, in Developer Mode, signed in to the owner's account, with TestFlight:
@@ -57,13 +66,20 @@ them. Never hand the owner a step an attached phone can do. Each Mac's `~/AGENTS
 attached now and how to build, sign and test there (ejc3/aws `scripts/mac-setup.sh`); read it first.
 The `drive-mac` skill has the details.
 
+Limits on those phones: act only in the app under test, TestFlight and the system prompts they raise.
+Never a purchase, a payment or Apple Account sheet, a setting outside the app's own, or anything in the
+owner's other apps. A Face ID, Touch ID, passcode or Apple Account password prompt is the owner's: say so
+once and stop.
+
 - `xcrun devicectl device info apps` does not list App Store or TestFlight apps, not even with
   `--include-all-apps`: an app missing from it proves nothing. Install the project's TestFlight build
   through TestFlight first; build and sign a development build only when TestFlight lacks the change.
 - A UI test opens a link in the app with `XCUIApplication(bundleIdentifier:).open(url)`;
-  `XCUIDevice.shared.system.open(url)` sends an `https` URL to the browser, never through universal links. A
-  sleeping phone with no passcode asked for (`devicectl device info lockState`) wakes with a home press and a
-  swipe up in the test; only a phone that wants its passcode needs the owner.
+  `XCUIDevice.shared.system.open(url)` sends an `https` URL to the browser, never through universal links.
+  `XCUIApplication.open` tests the app's own link routing, not whether iOS hands the domain to the app: that
+  rests on the signed entitlement and Apple's CDN copy of the association file, and a real tap needs the link
+  in another app. A sleeping phone with no passcode asked for (`devicectl device info lockState`) wakes with a home press and a
+  swipe up in the test; only a phone that wants its passcode needs the owner: say so once and stop.
 - Incident, 2026-11-24: an agent concluded from `devicectl` that the mini's phone had neither the app nor
   TestFlight, and asked the owner to install a build and tap an invite by hand.
 
@@ -138,6 +154,54 @@ and stream names published only on IPv6.
 - **Report a finding with its fix, not instead of it.** An agent that sees the user's view broken fixes it in the same
   task, or starts the fix, before reporting.
 
+## Exhaust your own routes before handing a step to the owner (owner, 2026-11-24)
+
+The owner, after an agent spent hours on "this needs you" for steps it could do itself: "make sure we never self
+block like this again. We have ways of doing everything." In one session an agent said an App Store Connect app record
+could only be made by hand (it then made one by driving the owner's Chrome), asked the owner to make a signing
+certificate in Xcode (the App Store Connect API issued one of another type), said an image could only be built on the
+build box (a pbox built it), and twice sent the owner to a dialog its own mistake had raised.
+
+- **Before you write "only you can", "this needs you" or "I can't", try the routes.** In this order:
+  - **An API with a key granted to this box.** The keys are under "Credentials on this box".
+    - App Store Connect's key covers certificates of every type, provisioning profiles, bundle ids, devices, builds,
+      and TestFlight groups and testers. Create with it; never revoke or delete a certificate, profile, key or device
+      that something else may sign with.
+    - An API that cannot do an operation for anyone is one route closed, not the task.
+    - A refusal because YOU lack the permission (IAM AccessDenied, a scoped token's 403, Cloudflare Access, a
+      ruleset or branch rule) is a boundary working, not a block. Propose the grant in ejc3/aws. Never route around
+      it through another credential, the owner's browser, another box or another session.
+  - **The owner's signed-in desktop.** Use the `drive-mac` skill: your own Chrome window, AppleScript and Peekaboo.
+    It is for consoles whose API cannot do the step (an App Store Connect app record, a Google console setting) in
+    a setup the owner asked for. Not for what Terraform owns (Cloudflare, AWS), access, tokens, keys or members,
+    or GitHub merges, rulesets and review gates: those go to ejc3/aws as a pull request or issue.
+  - **A machine that has what this box lacks:**
+    - the Mac mini, for builds, signing and the USB-paired iPhone;
+    - a pbox, for heavy work or tools this box does not have;
+    - the jumpbox (an ejc3/aws pull request or issue), for credentials, accounts and applies.
+  - **Another Claude session on this box that owns the piece.** Find it with `ListAgents`, then ask it. Never a
+    session on a jumpbox: nothing on a dev box contacts a jumpbox.
+- **What only the owner does:**
+  - typing a password, or approving 2FA or Touch ID;
+  - paying, or accepting a contract or terms;
+  - granting access, changing permissions, minting or revoking a credential, or approving an app authorization
+    (OAuth consent, a GitHub App install);
+  - restarting or rebooting a shared machine or app (the Mac, its Chrome, a dev box);
+  - a public launch;
+  - a cost or a choice that is theirs.
+
+  Prepare everything around those to the last click (the page open, the form filled), and hand over that one action.
+- **When you do hand a step over, say what you tried and why each route failed, with the evidence.** "Apple's API
+  refuses that" is a claim until you have called it and quoted the answer.
+- **Blocks you made yourself are defects, not the owner's work.** Find the defect before you ask the owner to act.
+  Examples:
+  - a test that gives up after 30 s and leaves a dialog nobody can answer;
+  - a credential borrowed from another session's keychain (a credential issued to another user or session is never
+    a route);
+  - a watcher waiting on a log line nothing writes.
+- **Waiting is a route too, done well.** When a step truly is the owner's, watch for it yourself with a watcher or
+  `Monitor` (never a hand-written polling loop) and carry on when it happens, rather than asking to be told.
+
 ## Acknowledged user state survives a restart (owner, 2026-10-31)
 
 The owner, after a deploy wiped a live party: "we can never have stateless things that lose data". User state a service
@@ -196,6 +260,9 @@ command line, into a file in a repo or a commit; never print one.
 - **Browserbase** (hosted browsers): JSON secret `browserbase/credentials`; export every key with
   `eval "$(aws secretsmanager get-secret-value --region us-west-1 --secret-id browserbase/credentials --query SecretString --output text | jq -r 'to_entries[] | "export \(.key)=\(.value|@sh)"')"`
 - **ElevenLabs** (voice and sound): `games/elevenlabs-api-key`, as `ELEVENLABS_API_KEY`.
+- **run.cloud** (cloud iOS simulators, the fallback when every Mac simulator is busy): JSON secret
+  `run-cloud/api-key`, as `RUN_CLOUD_API_KEY`, with `RUN_CLOUD_API_URL=https://api.run.cloud`. Same
+  development-role read boundary as ElevenLabs.
 - **Stability AI** (instrumental music, ambience, audio edits, images and image-to-3D):
   `games/stability-api-key` in us-west-1, as `STABILITY_API_KEY`. It has the same
   development-role read boundary as ElevenLabs. Keys stay in memory during generation.
