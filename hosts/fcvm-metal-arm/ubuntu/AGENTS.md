@@ -69,9 +69,10 @@ The `drive-mac` skill has the details.
 - `xcrun devicectl device info apps` does not list App Store or TestFlight apps, not even with
   `--include-all-apps`: an app missing from it proves nothing. Install the project's TestFlight build
   through TestFlight first; build and sign a development build only when TestFlight lacks the change.
-- A UI test taps a link as a person would (`XCUIDevice.shared.system.open(url)`). A sleeping phone with no
-  passcode asked for (`devicectl device info lockState`) wakes with a home press and a swipe up in the test;
-  only a phone that wants its passcode needs the owner.
+- A UI test opens a link in the app with `XCUIApplication(bundleIdentifier:).open(url)`;
+  `XCUIDevice.shared.system.open(url)` sends an `https` URL to the browser, never through universal links. A
+  sleeping phone with no passcode asked for (`devicectl device info lockState`) wakes with a home press and a
+  swipe up in the test; only a phone that wants its passcode needs the owner.
 - Incident, 2026-11-24: an agent concluded from `devicectl` that the mini's phone had neither the app nor
   TestFlight, and asked the owner to install a build and tap an invite by hand.
 
