@@ -48,6 +48,15 @@ CI and other VMs share the host's CPU and RAM. Check memory pressure and active 
 before increasing parallelism. Signing and TestFlight releases follow the project's existing CI.
 Launching an EC2 `macpbox` requires the owner's explicit approval for its minimum 24-hour lease.
 
+**When every simulator is busy, use run.cloud** (owner, 2026-11-24). If the mini's and the MacBook's build slots
+(`mac-build --status`) are all taken and the job needs an iOS Simulator, start one on run.cloud instead of waiting:
+cloud iOS simulators that take a simulator build (`.app`, `.zip`, `.tar.gz`), with tap, type, screenshot, pasteboard,
+open-URL and accessibility-tree calls, from the `runcloud` CLI or `@run-cloud/sdk`. The key is `run-cloud/api-key`
+("Credentials on this box"). It is billed per active simulator minute against a small balance: give every session an
+inactivity timeout and a hard timeout (`runcloud ios create --inactivity-timeout 2m --hard-timeout 30m`), delete it
+when done (`runcloud ios delete <id>`), and never touch a session you did not start (`runcloud ios list` shows the
+account's). Build the app on a Mac or with `runcloud xcode build` (simulator, unsigned), never sign or ship from it.
+
 ## Cheaper models for everyday work
 
 Claude Code here can run three current models for everyday work. Opus 5.5 is the default. (Fable 5.2,
@@ -177,6 +186,9 @@ command line, into a file in a repo or a commit; never print one.
 - **Browserbase** (hosted browsers): JSON secret `browserbase/credentials`; export every key with
   `eval "$(aws secretsmanager get-secret-value --region us-west-1 --secret-id browserbase/credentials --query SecretString --output text | jq -r 'to_entries[] | "export \(.key)=\(.value|@sh)"')"`
 - **ElevenLabs** (voice and sound): `games/elevenlabs-api-key`, as `ELEVENLABS_API_KEY`.
+- **run.cloud** (cloud iOS simulators, the fallback when every Mac simulator is busy): JSON secret
+  `run-cloud/api-key`, as `RUN_CLOUD_API_KEY`, with `RUN_CLOUD_API_URL=https://api.run.cloud`. Same
+  development-role read boundary as ElevenLabs.
 - **Stability AI** (instrumental music, ambience, audio edits, images and image-to-3D):
   `games/stability-api-key` in us-west-1, as `STABILITY_API_KEY`. It has the same
   development-role read boundary as ElevenLabs. Keys stay in memory during generation.
