@@ -128,6 +128,54 @@ and stream names published only on IPv6.
 - **Report a finding with its fix, not instead of it.** An agent that sees the user's view broken fixes it in the same
   task, or starts the fix, before reporting.
 
+## Exhaust your own routes before handing a step to the owner (owner, 2026-11-24)
+
+The owner, after an agent spent hours on "this needs you" for steps it could do itself: "make sure we never self
+block like this again. We have ways of doing everything." In one session an agent said an App Store Connect app record
+could only be made by hand (it then made one by driving the owner's Chrome), asked the owner to make a signing
+certificate in Xcode (the App Store Connect API issued one of another type), said an image could only be built on the
+build box (a pbox built it), and twice sent the owner to a dialog its own mistake had raised.
+
+- **Before you write "only you can", "this needs you" or "I can't", try the routes.** In this order:
+  - **An API with a key granted to this box.** The keys are under "Credentials on this box".
+    - App Store Connect's key covers certificates of every type, provisioning profiles, bundle ids, devices, builds,
+      and TestFlight groups and testers. Create with it; never revoke or delete a certificate, profile, key or device
+      that something else may sign with.
+    - An API that cannot do an operation for anyone is one route closed, not the task.
+    - A refusal because YOU lack the permission (IAM AccessDenied, a scoped token's 403, Cloudflare Access, a
+      ruleset or branch rule) is a boundary working, not a block. Propose the grant in ejc3/aws. Never route around
+      it through another credential, the owner's browser, another box or another session.
+  - **The owner's signed-in desktop.** Use the `drive-mac` skill: your own Chrome window, AppleScript and Peekaboo.
+    It is for consoles whose API cannot do the step (an App Store Connect app record, a Google console setting) in
+    a setup the owner asked for. Not for what Terraform owns (Cloudflare, AWS), access, tokens, keys or members,
+    or GitHub merges, rulesets and review gates: those go to ejc3/aws as a pull request or issue.
+  - **A machine that has what this box lacks:**
+    - the Mac mini, for builds, signing and the USB-paired iPhone;
+    - a pbox, for heavy work or tools this box does not have;
+    - the jumpbox (an ejc3/aws pull request or issue), for credentials, accounts and applies.
+  - **Another Claude session on this box that owns the piece.** Find it with `ListAgents`, then ask it. Never a
+    session on a jumpbox: nothing on a dev box contacts a jumpbox.
+- **What only the owner does:**
+  - typing a password, or approving 2FA or Touch ID;
+  - paying, or accepting a contract or terms;
+  - granting access, changing permissions, minting or revoking a credential, or approving an app authorization
+    (OAuth consent, a GitHub App install);
+  - restarting or rebooting a shared machine or app (the Mac, its Chrome, a dev box);
+  - a public launch;
+  - a cost or a choice that is theirs.
+
+  Prepare everything around those to the last click (the page open, the form filled), and hand over that one action.
+- **When you do hand a step over, say what you tried and why each route failed, with the evidence.** "Apple's API
+  refuses that" is a claim until you have called it and quoted the answer.
+- **Blocks you made yourself are defects, not the owner's work.** Find the defect before you ask the owner to act.
+  Examples:
+  - a test that gives up after 30 s and leaves a dialog nobody can answer;
+  - a credential borrowed from another session's keychain (a credential issued to another user or session is never
+    a route);
+  - a watcher waiting on a log line nothing writes.
+- **Waiting is a route too, done well.** When a step truly is the owner's, watch for it yourself with a watcher or
+  `Monitor` (never a hand-written polling loop) and carry on when it happens, rather than asking to be told.
+
 ## Acknowledged user state survives a restart (owner, 2026-10-31)
 
 The owner, after a deploy wiped a live party: "we can never have stateless things that lose data". User state a service
