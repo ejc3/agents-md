@@ -225,6 +225,28 @@ a queue of edits, a cart, what is playing) lives in a durable store, never only 
 - **Incident, 2026-10-31:** Costume Party (constellation) kept its party rooms only in the API process's memory. A staging
   deploy during the party replaced the process; every phone rejoined an empty room and the music stopped.
 
+## CPU and battery: measure every state, in front and in the background (owner, 2026-11-25)
+
+The owner: "Please be super careful about cpu use. Measure it both foreground and background." People run
+these apps on a low battery and in Low Power Mode, and a phone that redraws a hidden view or polls in the
+background drains it. An app change is not done until its CPU is measured.
+
+- **What to measure:** for every state the change touches, CPU seconds per minute, each state held about 60
+  seconds:
+  - in front: each screen at rest, and each active state (playing, animating, syncing, scrolling);
+  - in the background: the app sent to the background from each state that had work.
+- **What to expect:** a screen at rest is near zero. The background is near zero unless the app runs a
+  declared background task (audio, location, a transfer), and then only that task's work. No view, map,
+  animation or timer runs while the app is behind or the screen is off.
+- **Where:** a real device first. Drive the states with a UI test that holds each one and prints the clock
+  at each change, and record Instruments' Activity Monitor on the device
+  (`xcrun xctrace record --template 'Activity Monitor' --device <udid> --all-processes`). Read MetricKit's
+  reports for builds in testers' hands. A simulator gives only an upper bound. Never record a number from
+  a shared or overloaded machine as the result.
+- **Report it:** put the table, each state's CPU before and after, in the pull request. A rise is a defect
+  unless the pull request says why it is worth it. A long-running web page (a TV, a wall, a car screen) is
+  measured the same way in its browser, and does per-frame work only when something changes.
+
 ## Interactive web pages are built on Astryx (owner, 2026-10-17)
 
 New interactive web pages (app chrome and navigation, forms, settings, editors, dialogs, lists)
