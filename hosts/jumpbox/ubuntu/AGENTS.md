@@ -314,6 +314,25 @@ a queue of edits, a cart, what is playing) lives in a durable store, never only 
 - **Incident, 2026-10-31:** Costume Party (constellation) kept its party rooms only in the API process's memory. A staging
   deploy during the party replaced the process; every phone rejoined an empty room and the music stopped.
 
+## Tests await events, never wall clocks (owner, 2026-11-26)
+
+The owner, after a family of WebKit and media tests failed on an overloaded shared CI machine: "Can we move to an
+await pattern?", then "Make await pattern a core memory across repo". A test that polls every 100 ms against a
+2-30 s deadline, or sleeps 2 s to show that something did not happen, is a guess about how fast the machine is. On
+a shared runner (a load of 300 on 9 cores, a browser's helper processes slow to start) the guess fails with no
+defect in the code. This applies in every repository and language.
+
+- **Wait on the event itself:** an observation callback (`withObservationTracking`, KVO, Combine), a delegate call
+  wrapped in a continuation, a promise, an `asyncio.Event`, a Playwright locator or `expect.poll` tied to the real
+  state, a server's "listening" line, a process exit.
+- **One generous hang guard per wait** (say 120 s) that fails explicitly and names what it waited for. A guard
+  against a hang is not a timing assumption; a 2-second budget is.
+- **"X does not happen"** is asserted after a definite later event has arrived, never after a fixed sleep.
+- **Product time budgets are parameters** (timeouts, patience, scan windows), defaulting to today's value. Tests
+  of *what* happens pass a long budget; tests of the timeout itself drive it with an injected clock or a fake that
+  never answers, not real slowness.
+- **Never fix a flake** by raising a sleep or a deadline, or by loosening the assertion. Find the event to await.
+
 ## General Code Quality
 
 ### Logging
