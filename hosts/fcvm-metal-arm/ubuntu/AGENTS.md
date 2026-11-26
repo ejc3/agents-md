@@ -872,6 +872,20 @@ class MyTest(unittest.TestCase):
         assert result == expected
 ```
 
+## The GitHub API is a shared budget: wait on events, don't poll (owner, 2026-11-26)
+
+On 2026-11-26 one session's `gh` watchers drained the owner's account's REST limit (5,000 requests an hour) to zero. A production alert router that used a token on the same account then got 403 "API rate limit exceeded", and alarms could not reach GitHub until the hourly reset.
+
+- **One budget per account.** Every `gh` call made as an account shares one rate limit: every session, every agent, every script, and any automation using a token issued to that account. A watcher's cost is its calls per check times its checks per hour, summed over everything running.
+- **Wait on events where you can.** `gh event listen` (gh 2.105 and later, GitHub Event Streams, a preview enabled per account) waits for a pull request event instead of polling. For example: `gh event listen --resource <PR URL> --event com.github.pull_request.review.submitted.v1 --timeout 30m`, or `com.github.pull_request.check_suite.status.changed.v1`. An answer of "Event subscriptions are not enabled for this account" means the account is not in the preview: fall back to polling as below.
+- **When you poll:**
+  - check each thing at most once every 10 minutes;
+  - run one watcher per pull request, not one per agent;
+  - prefer the repository's own watcher (for example `dolphin pr wait`) over a hand-written loop;
+  - count every call a script makes per check (a stack-merge check can make dozens).
+- **Check the budget before starting several watchers:** `gh api rate_limit`. Keep about a fifth in reserve. At zero, stop your watchers until the reset rather than retrying.
+- **Automation never uses a person's token.** A Lambda, cron job or workflow that calls GitHub uses a GitHub App installation token, which has its own limit and doesn't expire with a person's token.
+
 ## PR flow: resolved threads, a reviewed head, no wasted runs (owner, 2026-10-22)
 
 The owner, on a day of wasted CI runs and review rounds: "You can't do useless ci runs like this", "No useless
