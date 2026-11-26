@@ -21,6 +21,13 @@ and disrupts other accounts' dev servers and sessions. Swap and throttling are n
   Connect directly through the configured pbox SSH path; do not route work through a jumpbox. Use a
   separate checkout or directory under `/mnt/work` for your agent and task. Transfer needed inputs,
   logs, and results using the ordinary Git or rsync path; do not copy admin credentials or keys.
+- **Share a slot within the same project** (owner, 2026-11-26). A pbox already running for the same project
+  (the same owner tag, another agent of your session or project) is fine and encouraged to reuse rather
+  than waiting for, or launching, another. Use your own directory under `/mnt/work` and your own build
+  output (`CARGO_TARGET_DIR`, `node_modules`), and leave its other directories alone. Never take down
+  an instance you did not launch; if it disappears, find another slot rather than relaunching its slot.
+  Do not share while anyone is measuring performance on that box (timings, benchmarks, CPU or memory
+  numbers for a decision or record): measurements get a box to themselves, so check with its owner first.
 - Keep the usual cost and cleanup rules: quote costs before starting a box, stay with the ordinary Spot
   and idle cleanup defaults, and run `pbox down N --instance ID` as soon as your results are copied out.
   Leave other jobs' slots alone. Work volumes at fallback sites are disposable.
