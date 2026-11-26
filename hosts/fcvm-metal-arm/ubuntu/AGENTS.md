@@ -886,6 +886,15 @@ On 2026-11-26 one session's `gh` watchers drained the owner's account's REST lim
 - **Check the budget before starting several watchers:** `gh api rate_limit`. Keep about a fifth in reserve. At zero, stop your watchers until the reset rather than retrying.
 - **Automation never uses a person's token.** A Lambda, cron job or workflow that calls GitHub uses a GitHub App installation token, which has its own limit and doesn't expire with a person's token.
 
+## Merge through a pooled queue, not one PR at a time (owner, 2026-11-26)
+
+The owner: "We need to move to merge queues. Think Covid pooled testing." Merging PRs one by one moves `main` each time. Every other open PR and stack then merges `main` again and re-runs CI, including native or device jobs that can queue for hours. Two PRs that each pass alone can also break `main` together.
+
+- **Prefer a pooled merge queue.** Ready PRs (each one's own gates passed: reviewed head, resolved threads, required checks) go into one batch: `main` plus every queued PR. That batch runs CI once, and on a pass they all land together, so `main` moves once. On a failure, re-run once for a flake, then split the batch in halves and test each until the culprit is isolated. Land the rest and tell the culprit's author why, with the failing log.
+- **Units:** a native stack is one unit, and automated PRs (data refreshes) join the queue rather than racing it.
+- **The repository's own queue:** use it where it has one (GitHub's merge queue where the plan allows it, or the repository's own pooled queue). Where it has none, batch by hand: collect the ready PRs, land them back to back with nothing else in between, then bring open stacks up to `main` once, not after each merge.
+- **The queue authenticates as a GitHub App,** never a person's token.
+
 ## PR flow: resolved threads, a reviewed head, no wasted runs (owner, 2026-10-22)
 
 The owner, on a day of wasted CI runs and review rounds: "You can't do useless ci runs like this", "No useless
