@@ -28,6 +28,10 @@ and disrupts other accounts' dev servers and sessions. Swap and throttling are n
   an instance you did not launch; if it disappears, find another slot rather than relaunching its slot.
   Do not share while anyone is measuring performance on that box (timings, benchmarks, CPU or memory
   numbers for a decision or record): measurements get a box to themselves, so check with its owner first.
+- **A cleaner empties idle `/mnt/work` directories** (ejc3/aws#1096). Build caches unused for 2 days go, then
+  task directories idle for 7 days, and the oldest idle ones when the volume is over 85% full. It never
+  touches a directory in use or changed within 24 hours. Put a `.pbox-keep` file in anything you need to
+  keep longer.
 - Keep the usual cost and cleanup rules: quote costs before starting a box, stay with the ordinary Spot
   and idle cleanup defaults, and run `pbox down N --instance ID` as soon as your results are copied out.
   Leave other jobs' slots alone. Work volumes at fallback sites are disposable.

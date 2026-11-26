@@ -27,6 +27,10 @@ other sessions. Swap and throttling do not provide the physical memory a job nee
   an instance you did not launch; if it disappears, find another slot rather than relaunching its slot.
   Do not share while anyone is measuring performance on that box (timings, benchmarks, CPU or memory
   numbers for a decision or record): measurements get a box to themselves, so check with its owner first.
+- **A cleaner empties idle `/mnt/work` directories** (ejc3/aws#1096). Build caches unused for 2 days go, then
+  task directories idle for 7 days, and the oldest idle ones when the volume is over 85% full. It never
+  touches a directory in use or changed within 24 hours. Put a `.pbox-keep` file in anything you need to
+  keep longer.
 - Keep ordinary Spot and idle cleanup defaults. Use `kvm-96`/`kvm-192` only for `/dev/kvm`, and use a
   storage flavor only when local NVMe is needed (`/mnt/nvme` is disposable).
 - In a Claude Code session the HTTPS proxy asks for a client certificate, which `pbox`'s AWS
