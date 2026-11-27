@@ -74,6 +74,14 @@ and keep the printed path.
 (umask 077; mkdir -p "$HOME/agent-work" && mktemp -d "$HOME/agent-work/task.XXXXXXXX")
 ```
 
+That path is the task's only handle. Save it (in the checkout's `.scratch/mini-task`, say) and use it in
+every later command, retries included. Never find it again with `ls -dt agent-work/task.*` or any other
+guess at the newest directory: other agents create directories there all the time. Write a one-line
+`owner` file into it (project, agent, pull request). Remove only that exact path, never a directory
+whose `owner` is not yours. Copy results back after each run, not only at the end. Incident,
+2026-11-27: a retry picked the newest task directory, which was another agent's, and its cleanup
+deleted that agent's device measurement while it ran.
+
 Use the existing SSH route from the dev box to transfer the exact source revision and any intended
 uncommitted edits. Keep keys and credentials on their original machine. Build in the new workspace
 with the host toolchain. Command Line Tools can build Swift packages. When full host Xcode is
