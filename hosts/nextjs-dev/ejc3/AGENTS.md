@@ -34,6 +34,23 @@ and disrupts other accounts' dev servers and sessions. Swap and throttling are n
   keep longer.
 - Keep the usual cost and cleanup rules: quote costs before starting a box, stay with the ordinary Spot
   and idle cleanup defaults, and run `pbox down N --instance ID` as soon as your results are copied out.
+- **A box is disposable: be careful with yours, and copy and push aggressively** (owner, 2026-11-27).
+  A spot reclaim, the idle cleanup, a lease end or `pbox down` erases the box, and a fallback site's work
+  volume goes with it. Boxes may be in any region, so no disk on a box is where anything is kept: the
+  durable places are git and this dev account.
+  - Commit every step of work made or changed on a box, and get the commit off the box at once: fetch it
+    from here over pbox's SSH path (or copy a bundle back), then push the branch from here. Never put a
+    credential on a box to push from it. Better still, edit and commit here and send the commit to the box.
+  - Copy results back when each job finishes and at least once a minute in between, not only at the end.
+    Run a queue of short jobs, each writing its own result and a done marker, so a lost box costs the job
+    in flight and a relaunch resumes from the markers held here.
+  - Whatever watches a box from here (copies back, takes it down at the end or at a deadline) must outlive
+    your session and a reboot of this host, and must pick the same instance up again by its ID.
+  - Before you wait on a long job, hand over or stop: your branch is committed and pushed, and the box's
+    results so far are here.
+  - Incident, 2026-11-26: box work kept its results on the box and copied them back every few minutes
+    through watchers that ended with the session. Two spot reclaims and one reboot of the dev host lost
+    finished results, the queues' positions and hours of builds, and left an on-demand box idle for 100 minutes.
   Leave other jobs' slots alone. Work volumes at fallback sites are disposable.
 
 ## Mac and iOS work on the physical Mac mini
