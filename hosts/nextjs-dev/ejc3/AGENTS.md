@@ -275,6 +275,17 @@ background drains it. An app change is not done until its CPU is measured.
   unless the pull request says why it is worth it. A long-running web page (a TV, a wall, a car screen) is
   measured the same way in its browser, and does per-frame work only when something changes.
 
+## Everything is instant (owner, 2026-11-27)
+
+The owner: "everything needs to be instant, instant. So aggressive pre-caching when practical." It's a core rule for every app and every screen.
+
+- **Draw at once:** each screen draws immediately, from its last-known state or a server-computed state for this viewer, and then reconciles. A spinner, a blank section or images popping in on a screen the user has seen before is a defect, not a loading state.
+- **Instant, but not stale** (the owner: "We shouldn't be crazy about from last view when we know the data is really stale, so have to strike right balance"). Last-known state is drawn only while it's fresh enough for what it shows (live scores about a minute, news minutes, schedules hours). When it's known to be stale, draw the fast server-computed state, or show the stale part visibly as updating, never passed off as current.
+- **Pre-cache aggressively** what the user is likely to open next: the detail pages behind the current list, the first screenful of media, favourites, the next tab, and images decoded at the size they're drawn.
+- **Speculate, then subscribe** (the owner: "if we can speculatively fetch something within reason do so and then subscribe to that entity for updates"). Each entity fetched ahead of time gets subscribed for updates (a push or sync channel, not a poll), so it's current when opened. Unsubscribe when it's no longer likely to be opened, or when the app goes to the background.
+- **Foreground only:** pre-cache while the app is active and idle, never in the background. The CPU and battery rule still holds, and nothing polls on repeat.
+- **Measure it:** a change to a screen states its time to drawn before and after, and how it's instant.
+
 ## Tests await events, never wall clocks (owner, 2026-11-26)
 
 The owner, after a family of WebKit and media tests failed on an overloaded shared CI machine: "Can we move to an
