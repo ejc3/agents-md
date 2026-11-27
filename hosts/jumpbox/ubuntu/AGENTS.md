@@ -314,6 +314,15 @@ a queue of edits, a cart, what is playing) lives in a durable store, never only 
 - **Incident, 2026-10-31:** Costume Party (constellation) kept its party rooms only in the API process's memory. A staging
   deploy during the party replaced the process; every phone rejoined an empty room and the music stopped.
 
+## Everything is instant (owner, 2026-11-27)
+
+The owner: "everything needs to be instant, instant. So aggressive pre-caching when practical." It's a core rule for every app and every screen.
+
+- **Draw at once:** each screen draws immediately, from its last-known state or a server-computed state for this viewer, and then reconciles. A spinner, a blank section or images popping in on a screen the user has seen before is a defect, not a loading state.
+- **Pre-cache aggressively** what the user is likely to open next: the detail pages behind the current list, the first screenful of media, favourites, the next tab, and images decoded at the size they're drawn.
+- **Foreground only:** pre-cache while the app is active and idle, never in the background. The CPU and battery rule still holds, and nothing polls on repeat.
+- **Measure it:** a change to a screen states its time to drawn before and after, and how it's instant.
+
 ## Tests await events, never wall clocks (owner, 2026-11-26)
 
 The owner, after a family of WebKit and media tests failed on an overloaded shared CI machine: "Can we move to an
