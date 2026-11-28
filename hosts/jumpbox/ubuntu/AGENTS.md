@@ -68,6 +68,17 @@ Terraform in `~/aws/` manages:
 
 ---
 
+## When to use Google Antigravity
+
+Run `agy models` in the signed-in account to see its current choices. Pass an exact ID with `agy --model ID` in the repository where the work belongs.
+
+- **Gemini 4 Hydrogen** handles a well-defined change quickly. Use `gemini-4-hydrogen-low` to write tests for a specified function, update a package, or apply a documented migration step.
+- **Gemini 4 Neon** suits investigations that mix code, terminal evidence, and quantitative reasoning. Use `gemini-4-neon-high` to diagnose a regression or interpret benchmark results. Try `gemini-4-neon-xhigh` when competing explanations survive the first tests.
+- **Gemini 4 Carbon** suits long investigations where a wrong assumption is expensive. Use `gemini-4-carbon-high` for a race across services, a recovery design with several failure modes, or a fix that needs repeated independent verification.
+- **Orchestrator with Neon** suits multi-file features with concrete acceptance tests. `gemini-pro-orchestrator-neon` lets Neon plan and check the work while Hydrogen performs edits and runs tests.
+
+Use the project's existing review gate and run heavy tests and builds on its CI or a suitably sized pbox. Google documents the available IDs and the planner and executor roles in its [Antigravity model guide](https://antigravity.google/docs/models). See also Google's [Neon](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-neon/) and [Carbon](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/) release notes.
+
 ## Drafts behind Cloudflare Access always ship (owner, 2026-10-12)
 
 A draft deployed behind a Cloudflare Access gate is ALWAYS okay to push, without asking: staging
