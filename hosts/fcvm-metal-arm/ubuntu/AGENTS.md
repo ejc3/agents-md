@@ -62,6 +62,21 @@ other sessions. Swap and throttling do not provide the physical memory a job nee
     finished results, the queues' positions and hours of builds, and left an on-demand box idle for 100 minutes.
 - Records keep the instance type, never the box's host name, IP or boot id.
 
+## Choosing a model for engineering and creative work
+
+Run `agy models` in the signed-in account to see its current choices. Pass an exact ID with `agy --model ID` in the repository where the work belongs.
+
+- **Gemini 4 Hydrogen** handles a well-defined change quickly. Use `gemini-4-hydrogen-low` to write tests for a specified function, update a package, apply a documented migration step, or rewrite short copy to a precise length and tone.
+- **Gemini 4 Neon** suits investigations that mix code, terminal evidence, and quantitative reasoning. Use `gemini-4-neon-high` to diagnose a regression or interpret benchmark results. Neon is also a good first editor for natural, direct prose. Check the revised copy for repetition. Try `gemini-4-neon-xhigh` when competing explanations survive the first tests.
+- **Gemini 4 Carbon** suits long investigations where a wrong assumption is expensive. Use `gemini-4-carbon-high` for a race across services, a recovery design with several failure modes, or a fix that needs repeated independent verification.
+- **Orchestrator with Neon** suits multi-file features with concrete acceptance tests. `gemini-pro-orchestrator-neon` lets Neon plan and check the work while Hydrogen performs edits and runs tests.
+
+Use the project's existing review gate and run heavy tests and builds on its CI or a suitably sized pbox. Google documents the available IDs and the planner and executor roles in its [Antigravity model guide](https://antigravity.google/docs/models). See also Google's [Neon](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-neon/) and [Carbon](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/) release notes.
+
+**Use an ensemble for highly creative work.** For a story opening, game concept, campaign, or high-stakes naming decision, ask Gemini Neon, Claude Code, and Codex to draft independently. Give them the same audience, facts, and constraints, with a different creative direction for each. For a game opening, for example, have one build the scene through sound, one through an object the player can touch, and one through an action. Keep the drafts out of each other's prompts until all three are in.
+
+Hide the model names and read the drafts as the intended audience. Pick the one with a distinctive voice, concrete detail, and fidelity to the brief. Give one editor responsibility for the final piece so it keeps that voice. Have another check the facts, length, and other constraints against the original brief. Rotate the assignments when the work calls for it.
+
 ## Mac and iOS work on the physical Mac mini
 
 Use the already-running Mac mini by default for macOS command-line builds, scripts and tests
