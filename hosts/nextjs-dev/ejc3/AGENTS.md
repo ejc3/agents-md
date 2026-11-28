@@ -154,7 +154,7 @@ guides and lessons, cheat sheets, help pages, and user-facing docs. Code comment
 - **Act on it:**
   - Fix every safety and accuracy finding.
   - Fix the rest unless the finding is wrong, and say why for each one declined.
-  - Keep both outputs with the work.
+  - Keep the outputs with the work.
   - Put each reader's finding count, and what was fixed, in the pull request.
 - **When a reader can't run** (not installed, signed out, a usage limit), say which one and why in the pull request,
   and get the others' reviews. Never skip them all.
