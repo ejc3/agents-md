@@ -134,17 +134,20 @@ Use the project's existing review gate and run heavy tests and builds on its CI 
 
 Hide the model names and read the drafts as the intended audience. Pick the one with a distinctive voice, concrete detail, and fidelity to the brief. Give one editor responsibility for the final piece so it keeps that voice. Have another check the facts, length, and other constraints against the original brief. Rotate the assignments when the work calls for it.
 
-## Prose gets a second read from Gemini and Codex (owner, 2026-11-28)
+## Prose gets a second read from Gemini, Codex and Fable (owner, 2026-11-28)
 
-The owner: "For the prose you are writing (e.g. the guides) get a second read from Gemini / antigravity and codex."
-Prose a model writes for people to learn from or rely on gets reviewed by two other models before it ships: in-app
+The owner: "For the prose you are writing (e.g. the guides) get a second read from Gemini / antigravity and codex", then
+"And add a fable pass". Prose a model writes for people to learn from or rely on gets reviewed by three other readers
+before it ships: in-app
 guides and lessons, cheat sheets, help pages, and user-facing docs. Code comments and commit messages are exempt.
 
-- **Two readers, read-only, in parallel**, run from inside the repository:
+- **Three readers, read-only, in parallel**, run from inside the repository:
   - Codex: `codex exec -s read-only "<brief>"`.
   - Gemini through the Antigravity CLI: `agy -p "<brief>" --mode plan --print-timeout 1700s`. In print mode `agy`
     cannot ask for tool permissions, so it cannot open files: put the text in the prompt itself, split into parts of
     under about 100 KB.
+  - Fable: a Claude Code subagent on Fable (the Agent tool with `model: "fable"`), told to read the text and edit
+    nothing. It is the one exception to "delegate down, never up", as for the Codex stand-in review.
 - **The brief:** accuracy against the stated sources; safety (mains, voltage, ladders, weather, anything that can hurt
   someone); clarity for a newcomer; missing topics; plain English; formatting faults; consistency across pages. Ask
   for numbered findings, each with the quoted text and the fix.
@@ -154,7 +157,7 @@ guides and lessons, cheat sheets, help pages, and user-facing docs. Code comment
   - Keep both outputs with the work.
   - Put each reader's finding count, and what was fixed, in the pull request.
 - **When a reader can't run** (not installed, signed out, a usage limit), say which one and why in the pull request,
-  and get the other reader's review. Never skip both.
+  and get the others' reviews. Never skip them all.
 - **Agents that write prose** get this step in their brief.
 
 ## Cheaper models for everyday work
