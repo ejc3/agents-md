@@ -354,6 +354,12 @@ command line, into a file in a repo or a commit; never print one.
 - **Stability AI** (instrumental music, ambience, audio edits, images and image-to-3D):
   `games/stability-api-key` in us-west-1, as `STABILITY_API_KEY`. It has the same
   development-role read boundary as ElevenLabs. Keys stay in memory during generation.
+- **Meshy AI** (3D models from text, one image or up to four views; retexture, remesh, UV unwrap and format
+  conversion; rigging and animated characters; images too): `games/meshy-api-key` in us-west-1, as `MESHY_API_KEY`,
+  the same read boundary as Stability. Send it to curl on stdin (`printf 'Authorization: Bearer %s\n' "$MESHY_API_KEY"
+  | curl -H @- https://api.meshy.ai/openapi/...`), never as an argument. Every task is asynchronous and spends credits
+  from one shared balance (`GET /v1/balance`); download accepted outputs at once, since their URLs expire within days.
+  The creative-assets skill below has the endpoints, prices and options.
 - **Offline creative assets:** when installed, use `~/.claude/skills/creative-assets/SKILL.md`
   (Codex mirror: `~/.agents/skills/creative-assets/SKILL.md`). A self-contained copy,
   provider pricing, capabilities, licenses and batch guidance are also maintained in
@@ -361,7 +367,8 @@ command line, into a file in a repo or a commit; never print one.
   If the local skill is absent after a rebuild, read that repository copy before choosing
   a provider or starting a batch; the instructions below remain self-contained.
   Prefer ElevenLabs for voices and short loopable effects; compare Stability for long
-  instrumental tracks, ambience and visual assets. Start with a small quality pilot,
+  instrumental tracks, ambience and visual assets; use Meshy for 3D models, and for rigging
+  and animating characters. Start with a small quality pilot,
   estimate cost, cap concurrent work and retry spend, retain generation IDs and accepted
   files, then ship the finished files for offline playback. A paid Suno website account
   is not an official API; include its private adapter in unattended batches only after
